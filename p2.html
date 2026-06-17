@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Prompt Generator</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --border2: #3a3a3a;
+    --text: #e8e8e8;
+    --text2: #a0a0a0;
+    --text3: #666666;
+    --accent: #3b6fd4;
+    --accent-hover: #4a7ee3;
+    --accent-light: #1a2d5a;
+    --success: #2d6a4f;
+    --success-text: #74c69d;
+    --tag-bg: #1e2a3a;
+    --tag-text: #7eb8f7;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  .sidebar-header {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .sidebar-header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .sidebar-header p {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 3px;
+  }
+
+  .section {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+
+  input[type="text"],
+  input[type="tel"],
+  input[type="email"],
+  input[type="url"],
+  textarea,
+  select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 13px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+    font-family: inherit;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  textarea { resize: vertical; min-height: 70px; }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .color-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .color-field label {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .color-input-wrap {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  input[type="color"] {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface2);
+    cursor: pointer;
+    padding: 2px;
+    flex-shrink: 0;
+  }
+
+  .color-hex {
+    flex: 1;
+    font-size: 12px;
+    font-family: monospace;
+    padding: 6px 8px;
+  }
+
+  .checkbox-grid {
+    display: grid;
+    gap: 6px;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .checkbox-item:hover { border-color: var(--border2); }
+  .checkbox-item.checked { border-color: var(--accent); background: var(--accent-light); }
+
+  .checkbox-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .checkbox-item .cb-label {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .checkbox-item .cb-desc {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  .radio-grid { display: grid; gap: 6px; }
+
+  .radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .radio-item:hover { border-color: var(--border2); }
+  .radio-item.selected { border-color: var(--accent); background: var(--accent-light); }
+
+  .radio-item input[type="radio"] {
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .radio-item span { font-size: 13px; color: var(--text); }
+
+  .pages-list { display: flex; flex-direction: column; gap: 6px; }
+
+  .page-item {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .page-item input { flex: 1; }
+  .page-item .page-desc { flex: 2; }
+
+  .btn-add {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px dashed var(--border2);
+    color: var(--text3);
+    font-size: 12px;
+    padding: 7px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .btn-add:hover { color: var(--text2); border-color: var(--accent); }
+
+  .btn-remove {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text3);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .btn-remove:hover { color: #f87171; border-color: #f87171; }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .main-header {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 5;
+  }
+
+  .main-header h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .main-header p {
+    font-size: 12px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .btn {
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text2);
+  }
+
+  .btn-secondary:hover { color: var(--text); border-color: var(--border2); }
+
+  .prompt-area {
+    flex: 1;
+    padding: 20px 28px;
+    overflow-y: auto;
+  }
+
+  .prompt-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .prompt-box-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .prompt-box-header span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text3);
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--success); color: var(--success-text); }
+
+  #prompt-output {
+    padding: 16px;
+    font-family: 'Consolas', 'Fira Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 300px;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+
+  .prompt-hint {
+    text-align: center;
+    color: var(--text3);
+    font-size: 13px;
+    padding: 60px 20px;
+  }
+
+  .prompt-hint .icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+    opacity: 0.3;
+  }
+
+  select option { background: var(--surface2); }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+
+  .tag {
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid #2a3d5a;
+  }
+
+  .number-input {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface2);
+    width: 120px;
+  }
+
+  .number-input button {
+    background: none;
+    border: none;
+    color: var(--text2);
+    width: 32px;
+    height: 34px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.1s;
+    flex-shrink: 0;
+  }
+
+  .number-input button:hover { background: var(--border); }
+
+  .number-input input {
+    border: none;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-radius: 0;
+    text-align: center;
+    width: 56px;
+    padding: 8px 4px;
+    font-size: 13px;
+    background: var(--surface2);
+  }
+
+  .chatbot-settings {
+    display: none;
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .chatbot-settings.visible { display: block; }
+
+  .scroll-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 100;
+  }
+
+  .scroll-top.visible { opacity: 1; }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { height: auto; position: static; }
+    .main-header { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>Website Prompt Generator</h1>
+      <p>Fülle das Formular aus — der Prompt wird live generiert</p>
+    </div>
+
+    <!-- KUNDENDATEN -->
+    <div class="section">
+      <div class="section-title">Kundendaten</div>
+      <div class="field">
+        <label>Firmenname *</label>
+        <input type="text" id="company" placeholder="z.B. Müller GmbH" oninput="generate()">
+      </div>
+      <div class="field">
+        <label>Branche / Geschäftsfeld</label>
+        <input type="text" id="industry" placeholder="z.B. Steuerberatung, Handwerk, IT..." oninput="generate()">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Telefon</label>
+          <input type="tel" id="phone" placeholder="+49 89 123456" oninput="generate()">
+        </div>
+        <div class="field">
+          <label>E-Mail</label>
+          <input type="email" id="email" placeholder="info@firma.de" oninput="generate()">
+        </div>
+      </div>
+      <div class="field">
+        <label>Website (falls vorhanden)</label>
+        <input type="url" id="website" placeholder="https://..." oninput="generate()">
+      </div>
+      <div class="field">
+        <label>Adresse</label>
+        <input type="text" id="address" placeholder="Musterstraße 1, 80333 München" oninput="generate()">
+      </div>
+      <div class="field">
+        <label>Slogan / Tagline</label>
+        <input type="text" id="slogan" placeholder="z.B. Ihre Experten für..." oninput="generate()">
+      </div>
+      <div class="field">
+        <label>Kurzbeschreibung des Unternehmens</label>
+        <textarea id="description" placeholder="Was macht das Unternehmen? Für wen? USPs?" oninput="generate()"></textarea>
+      </div>
+    </div>
+
+    <!-- FARBEN -->
+    <div class="section">
+      <div class="section-title">Farbschema</div>
+      <div class="color-grid">
+        <div class="color-field">
+          <label>Primär</label>
+          <div class="color-input-wrap">
+            <input type="color" id="color1" value="#1a1a2e" oninput="syncColor(this,'hex1');generate()">
+            <input type="text" id="hex1" class="color-hex" value="#1a1a2e" oninput="syncHex(this,'color1');generate()" maxlength="7">
+          </div>
+        </div>
+        <div class="color-field">
+          <label>Sekundär</label>
+          <div class="color-input-wrap">
+            <input type="color" id="color2" value="#f8f8f8" oninput="syncColor(this,'hex2');generate()">
+            <input type="text" id="hex2" class="color-hex" value="#f8f8f8" oninput="syncHex(this,'color2');generate()" maxlength="7">
+          </div>
+        </div>
+        <div class="color-field">
+          <label>Akzent</label>
+          <div class="color-input-wrap">
+            <input type="color" id="color3" value="#2b6cb0" oninput="syncColor(this,'hex3');generate()">
+            <input type="text" id="hex3" class="color-hex" value="#2b6cb0" oninput="syncHex(this,'color3');generate()" maxlength="7">
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px;">
+        <label>Farbton-Modus</label>
+        <select id="colorMode" onchange="generate()">
+          <option value="light">Light Mode (heller Hintergrund)</option>
+          <option value="dark">Dark Mode (dunkler Hintergrund)</option>
+          <option value="both">Beide Modi (mit Toggle)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- SEITEN -->
+    <div class="section">
+      <div class="section-title">Seiten & Struktur</div>
+      <div class="field">
+        <label>Anzahl Hauptseiten</label>
+        <div class="number-input">
+          <button onclick="adjustPages(-1)">−</button>
+          <input type="number" id="pageCount" value="3" min="1" max="20" oninput="generate()">
+          <button onclick="adjustPages(1)">+</button>
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <div class="checkbox-grid">
+          <label class="checkbox-item" id="chk-wrap-imprint">
+            <input type="checkbox" id="chk-imprint" checked onchange="toggle(this);generate()">
+            <div>
+              <div class="cb-label">Impressum</div>
+              <div class="cb-desc">Platzhalter-Seite /impressum</div>
+            </div>
+          </label>
+          <label class="checkbox-item" id="chk-wrap-privacy">
+            <input type="checkbox" id="chk-privacy" checked onchange="toggle(this);generate()">
+            <div>
+              <div class="cb-label">Datenschutz</div>
+              <div class="cb-desc">Platzhalter-Seite /datenschutz</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:12px; color:var(--text3); margin-bottom:8px; display:block;">Zusätzliche Seiten</label>
+        <div class="pages-list" id="extra-pages"></div>
+        <button class="btn-add" onclick="addPage()">+ Seite hinzufügen</button>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div class="section">
+      <div class="section-title">Features</div>
+      <div class="checkbox-grid">
+        <label class="checkbox-item" id="chk-wrap-contact">
+          <input type="checkbox" id="chk-contact" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Kontaktformular</div>
+            <div class="cb-desc">Name, E-Mail, Nachricht → Cloudflare Function + D1</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-chatbot">
+          <input type="checkbox" id="chk-chatbot" onchange="toggle(this);toggleChatbot(this);generate()">
+          <div>
+            <div class="cb-label">KI-Chatbot</div>
+            <div class="cb-desc">Mistral API, 10 Req/h pro IP, System-Prompt</div>
+          </div>
+        </label>
+        <div class="chatbot-settings" id="chatbot-settings">
+          <div class="field">
+            <label>Chatbot-Name</label>
+            <input type="text" id="chatbot-name" placeholder="z.B. Max, Assistentin Lisa..." oninput="generate()">
+          </div>
+          <div class="field">
+            <label>Chatbot-Persönlichkeit / Ton</label>
+            <select id="chatbot-tone" onchange="generate()">
+              <option value="professional">Professionell & sachlich</option>
+              <option value="friendly">Freundlich & zugänglich</option>
+              <option value="expert">Fachkundig & präzise</option>
+              <option value="casual">Locker & modern</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Chatbot-Wissen (wird in System-Prompt eingefügt)</label>
+            <textarea id="chatbot-knowledge" placeholder="Öffnungszeiten, Leistungen, FAQ, Preise, Ansprechpartner..." oninput="generate()"></textarea>
+          </div>
+          <div class="field">
+            <label>Sprache des Chatbots</label>
+            <select id="chatbot-lang" onchange="generate()">
+              <option value="de">Deutsch</option>
+              <option value="en">Englisch</option>
+              <option value="de-en">Deutsch + Englisch (automatisch)</option>
+            </select>
+          </div>
+        </div>
+        <label class="checkbox-item" id="chk-wrap-logo-have">
+          <input type="checkbox" id="chk-logo-have" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Logo vorhanden</div>
+            <div class="cb-desc">Logo per Dateianhang mitschicken</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-logo-gen">
+          <input type="checkbox" id="chk-logo-gen" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Logo generieren (SVG)</div>
+            <div class="cb-desc">Claude erstellt ein professionelles SVG-Logo</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-admin">
+          <input type="checkbox" id="chk-admin" checked onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Admin Dashboard</div>
+            <div class="cb-desc">/functions/admin.js — Formular-Einträge einsehen</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-newsletter">
+          <input type="checkbox" id="chk-newsletter" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Newsletter-Anmeldung</div>
+            <div class="cb-desc">E-Mail-Sammlung mit D1-Speicherung</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-map">
+          <input type="checkbox" id="chk-map" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Standortkarte</div>
+            <div class="cb-desc">OpenStreetMap Leaflet eingebettet</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-faq">
+          <input type="checkbox" id="chk-faq" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">FAQ-Sektion</div>
+            <div class="cb-desc">Akkordeon-Style, aufklappbar</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-testimonials">
+          <input type="checkbox" id="chk-testimonials" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Kundenstimmen</div>
+            <div class="cb-desc">Testimonial-Karten mit Zitat & Name</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-team">
+          <input type="checkbox" id="chk-team" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Team-Sektion</div>
+            <div class="cb-desc">Mitarbeiter mit Foto, Name, Position</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-services">
+          <input type="checkbox" id="chk-services" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Leistungsübersicht</div>
+            <div class="cb-desc">Karten oder Grid mit Dienstleistungen</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-pricing">
+          <input type="checkbox" id="chk-pricing" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Preistabelle</div>
+            <div class="cb-desc">3 Pakete mit Highlights & CTA</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-blog">
+          <input type="checkbox" id="chk-blog" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Blog / News-Sektion</div>
+            <div class="cb-desc">Artikel-Vorschau-Karten</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-gallery">
+          <input type="checkbox" id="chk-gallery" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Bildergalerie</div>
+            <div class="cb-desc">Masonry oder Grid mit Lightbox</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-social">
+          <input type="checkbox" id="chk-social" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Social Media Links</div>
+            <div class="cb-desc">SVG-Icons für Instagram, LinkedIn, etc.</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-stats">
+          <input type="checkbox" id="chk-stats" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Kennzahlen / Stats</div>
+            <div class="cb-desc">z.B. 500+ Kunden, 15 Jahre Erfahrung</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-portfolio">
+          <input type="checkbox" id="chk-portfolio" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Portfolio / Referenzen</div>
+            <div class="cb-desc">Fallstudien oder Projektvorschau</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- DESIGN -->
+    <div class="section">
+      <div class="section-title">Design-Stil</div>
+      <div class="radio-grid" id="design-style">
+        <label class="radio-item selected" onclick="selectRadio(this,'design-style');generate()">
+          <input type="radio" name="style" value="minimal" checked>
+          <span>Minimalistisch — viel Weißraum, klare Linien</span>
+        </label>
+        <label class="radio-item" onclick="selectRadio(this,'design-style');generate()">
+          <input type="radio" name="style" value="corporate">
+          <span>Corporate — professionell, strukturiert</span>
+        </label>
+        <label class="radio-item" onclick="selectRadio(this,'design-style');generate()">
+          <input type="radio" name="style" value="modern">
+          <span>Modern — zeitgemäß, leicht verspielt</span>
+        </label>
+        <label class="radio-item" onclick="selectRadio(this,'design-style');generate()">
+          <input type="radio" name="style" value="traditional">
+          <span>Traditionell — konservativ, vertrauenswürdig</span>
+        </label>
+        <label class="radio-item" onclick="selectRadio(this,'design-style');generate()">
+          <input type="radio" name="style" value="bold">
+          <span>Bold — starke Typografie, kontraststark</span>
+        </label>
+        <label class="radio-item" onclick="selectRadio(this,'design-style');generate()">
+          <input type="radio" name="style" value="elegant">
+          <span>Elegant — Serif, gedämpfte Farben, hochwertig</span>
+        </label>
+      </div>
+      <div class="field" style="margin-top:12px;">
+        <label>Typografie-Persönlichkeit</label>
+        <select id="typography" onchange="generate()">
+          <option value="inter-dm">Inter (Body) + DM Serif (Headlines) — modern & seriös</option>
+          <option value="inter-playfair">Inter (Body) + Playfair Display — elegant</option>
+          <option value="geist-mono">Geist (Body) + Geist Mono — tech & clean</option>
+          <option value="plus-jakarta">Plus Jakarta Sans — modern & friendly</option>
+          <option value="lato-merriweather">Lato (Body) + Merriweather (Headlines) — traditionell</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Border Radius</label>
+        <select id="radius" onchange="generate()">
+          <option value="sharp">Kantig (0px) — industriell, tech</option>
+          <option value="subtle" selected>Subtil (4-6px) — professionell</option>
+          <option value="rounded">Gerundet (8-12px) — freundlich</option>
+          <option value="pill">Pill (999px Buttons) — modern, soft</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Animationen</label>
+        <select id="animations" onchange="generate()">
+          <option value="minimal">Minimal — nur subtile Hover-Effekte</option>
+          <option value="moderate" selected>Moderat — Fade-in beim Scrollen</option>
+          <option value="none">Keine — statisch, maximale Performance</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="section">
+      <div class="section-title">Inhalte & Texte</div>
+      <div class="field">
+        <label>Primäre Zielgruppe</label>
+        <input type="text" id="target" placeholder="z.B. KMU-Geschäftsführer, Privatkunden 30-55..." oninput="generate()">
+      </div>
+      <div class="field">
+        <label>Haupt Call-to-Action</label>
+        <input type="text" id="cta" placeholder="z.B. Jetzt Beratung anfragen, Angebot einholen..." oninput="generate()">
+      </div>
+      <div class="field">
+        <label>Sprache der Website</label>
+        <select id="lang" onchange="generate()">
+          <option value="de">Deutsch</option>
+          <option value="en">Englisch</option>
+          <option value="de-en">Deutsch + Englisch (i18n)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ton der Texte</label>
+        <select id="tone" onchange="generate()">
+          <option value="formal">Förmlich (Sie-Form)</option>
+          <option value="semi-formal">Halbformell</option>
+          <option value="friendly">Freundlich-locker (Du-Form)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Zusätzliche Anforderungen / Hinweise</label>
+        <textarea id="extra" placeholder="Spezielle Wünsche, Konkurrenten, Referenzseiten..." oninput="generate()"></textarea>
+      </div>
+    </div>
+
+    <!-- TECHNISCH -->
+    <div class="section">
+      <div class="section-title">Technische Details</div>
+      <div class="checkbox-grid">
+        <label class="checkbox-item checked" id="chk-wrap-seo">
+          <input type="checkbox" id="chk-seo" checked onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">SEO-Grundlagen</div>
+            <div class="cb-desc">Meta-Tags, OpenGraph, sitemap.xml, robots.txt</div>
+          </div>
+        </label>
+        <label class="checkbox-item checked" id="chk-wrap-mobile">
+          <input type="checkbox" id="chk-mobile" checked onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Mobile-First</div>
+            <div class="cb-desc">Vollständig responsiv, Touch-optimiert</div>
+          </div>
+        </label>
+        <label class="checkbox-item checked" id="chk-wrap-a11y">
+          <input type="checkbox" id="chk-a11y" checked onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Accessibility (a11y)</div>
+            <div class="cb-desc">ARIA-Labels, Keyboard-Navigation, Kontrastverhältnisse</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-cookie">
+          <input type="checkbox" id="chk-cookie" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Cookie-Banner</div>
+            <div class="cb-desc">DSGVO-konform, Consent-Management</div>
+          </div>
+        </label>
+        <label class="checkbox-item" id="chk-wrap-analytics">
+          <input type="checkbox" id="chk-analytics" onchange="toggle(this);generate()">
+          <div>
+            <div class="cb-label">Analytics vorbereiten</div>
+            <div class="cb-desc">Platzhalter für Tracking (DSGVO-konform)</div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="main-header">
+      <div>
+        <h2>Generierter Prompt</h2>
+        <p>Direkt in Claude einfügen — ZIP-Datei wird geliefert</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="resetForm()">Zurücksetzen</button>
+        <button class="btn btn-primary" onclick="copyPrompt()">Prompt kopieren</button>
+      </div>
+    </div>
+    <div class="prompt-area">
+      <div class="prompt-box">
+        <div class="prompt-box-header">
+          <span>System Prompt für Claude</span>
+          <button class="copy-btn" id="copy-btn-top" onclick="copyPrompt()">Kopieren</button>
+        </div>
+        <div id="prompt-output">
+          <div class="prompt-hint">
+            <div class="icon">⬅</div>
+            Firmenname eingeben, um den Prompt zu generieren
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<button class="scroll-top" id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+let extraPages = [];
+let pageCounter = 0;
+
+function syncColor(colorInput, hexId) {
+  document.getElementById(hexId).value = colorInput.value;
+}
+
+function syncHex(hexInput, colorId) {
+  const val = hexInput.value;
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    document.getElementById(colorId).value = val;
+  }
+}
+
+function toggle(cb) {
+  const wrap = document.getElementById('chk-wrap-' + cb.id.replace('chk-', ''));
+  if (wrap) wrap.classList.toggle('checked', cb.checked);
+}
+
+function selectRadio(label, groupId) {
+  document.querySelectorAll('#' + groupId + ' .radio-item').forEach(el => el.classList.remove('selected'));
+  label.classList.add('selected');
+}
+
+function toggleChatbot(cb) {
+  document.getElementById('chatbot-settings').classList.toggle('visible', cb.checked);
+}
+
+function adjustPages(delta) {
+  const input = document.getElementById('pageCount');
+  const newVal = Math.max(1, Math.min(20, parseInt(input.value || 1) + delta));
+  input.value = newVal;
+  generate();
+}
+
+function addPage() {
+  const id = ++pageCounter;
+  const div = document.createElement('div');
+  div.className = 'page-item';
+  div.id = 'page-' + id;
+  div.innerHTML = `
+    <input type="text" class="page-path" placeholder="/leistungen" oninput="generate()" style="flex:1;">
+    <input type="text" class="page-desc-input page-desc" placeholder="Kurzbeschreibung der Seite" oninput="generate()" style="flex:2;">
+    <button class="btn-remove" onclick="removePage(${id})" title="Entfernen">×</button>
+  `;
+  document.getElementById('extra-pages').appendChild(div);
+  div.querySelector('.page-path').focus();
+}
+
+function removePage(id) {
+  const el = document.getElementById('page-' + id);
+  if (el) el.remove();
+  generate();
+}
+
+function getExtraPages() {
+  const pages = [];
+  document.querySelectorAll('.page-item').forEach(item => {
+    const path = item.querySelector('.page-path')?.value?.trim();
+    const desc = item.querySelector('.page-desc-input')?.value?.trim();
+    if (path) pages.push({ path, desc });
+  });
+  return pages;
+}
+
+function getChecked(id) {
+  const el = document.getElementById(id);
+  return el ? el.checked : false;
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function getRadioVal(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+const styleDescriptions = {
+  minimal: 'Minimalistisch: maximaler Weißraum, klare typografische Hierarchie, keine unnötige Dekoration, Inhalt steht im Vordergrund',
+  corporate: 'Corporate: strukturiert, professionell, Vertrauen aufbauend, klare Sektionen mit klaren Überschriften',
+  modern: 'Modern: zeitgemäß, leichte Asymmetrie erlaubt, ansprechende visuelle Rhythmik, frisch ohne verspielt zu sein',
+  traditional: 'Traditionell: konservativ, vertrauenswürdig, geerdete Typografie, bewährendes Layout ohne Experimente',
+  bold: 'Bold: starke Display-Typografie, hoher Kontrast, kraftvolle Sections, Typografie als gestalterisches Element',
+  elegant: 'Elegant: Serif-Headlines, zurückhaltende Akzente, großzügige Abstände, Qualitäts-Anmutung'
+};
+
+const typographyDescriptions = {
+  'inter-dm': 'Inter (16px Body, 400/500) + DM Serif Display (Headlines, 700) — moderner Kontrast aus humanistischer Grotesk und klassischer Serif',
+  'inter-playfair': 'Inter (16px Body, 400/500) + Playfair Display (Headlines, 700) — elegant, hochwertig',
+  'geist-mono': 'Geist (Body, 400/500) + Geist Mono (Code/Akzente) — tech-orientiert, cleaner Look',
+  'plus-jakarta': 'Plus Jakarta Sans durchgehend (verschiedene Gewichte 400/600/700) — modern, freundlich, kohärent',
+  'lato-merriweather': 'Lato (16px Body, 400/700) + Merriweather (Headlines, 700) — gut lesbar, traditionell'
+};
+
+const radiusDescriptions = {
+  sharp: '0px (alle Elemente kantig, keine border-radius)',
+  subtle: '4px Buttons/Inputs, 6px Karten',
+  rounded: '8px Buttons/Inputs, 12px Karten',
+  pill: '999px Buttons (Pill-Shape), 8px Karten'
+};
+
+const animationDescriptions = {
+  minimal: 'Nur subtile Hover-Übergänge (150ms ease), keine Scroll-Animationen',
+  moderate: 'Fade-in-up beim Scrollen (IntersectionObserver), 300ms ease-out, kein Layout-Shift',
+  none: 'Keine Animationen, statisch, maximale Performance und Reduziertheit'
+};
+
+function generate() {
+  const company = getVal('company');
+  if (!company) {
+    document.getElementById('prompt-output').innerHTML = '<div class="prompt-hint"><div class="icon">⬅</div>Firmenname eingeben, um den Prompt zu generieren</div>';
+    return;
+  }
+
+  const industry = getVal('industry');
+  const phone = getVal('phone');
+  const email = getVal('email');
+  const website = getVal('website');
+  const address = getVal('address');
+  const slogan = getVal('slogan');
+  const description = getVal('description');
+  const color1 = getVal('hex1') || '#1a1a2e';
+  const color2 = getVal('hex2') || '#f8f8f8';
+  const color3 = getVal('hex3') || '#2b6cb0';
+  const colorMode = getVal('colorMode');
+  const pageCount = parseInt(document.getElementById('pageCount').value || 3);
+  const style = getRadioVal('style') || 'minimal';
+  const typography = getVal('typography');
+  const radius = getVal('radius');
+  const animations = getVal('animations');
+  const target = getVal('target');
+  const cta = getVal('cta');
+  const lang = getVal('lang');
+  const tone = getVal('tone');
+  const extra = getVal('extra');
+
+  const hasContact = getChecked('chk-contact');
+  const hasChatbot = getChecked('chk-chatbot');
+  const hasLogoHave = getChecked('chk-logo-have');
+  const hasLogoGen = getChecked('chk-logo-gen');
+  const hasAdmin = getChecked('chk-admin');
+  const hasNewsletter = getChecked('chk-newsletter');
+  const hasMap = getChecked('chk-map');
+  const hasFaq = getChecked('chk-faq');
+  const hasTestimonials = getChecked('chk-testimonials');
+  const hasTeam = getChecked('chk-team');
+  const hasServices = getChecked('chk-services');
+  const hasPricing = getChecked('chk-pricing');
+  const hasBlog = getChecked('chk-blog');
+  const hasGallery = getChecked('chk-gallery');
+  const hasSocial = getChecked('chk-social');
+  const hasStats = getChecked('chk-stats');
+  const hasPortfolio = getChecked('chk-portfolio');
+  const hasImprint = getChecked('chk-imprint');
+  const hasPrivacy = getChecked('chk-privacy');
+  const hasSEO = getChecked('chk-seo');
+  const hasMobile = getChecked('chk-mobile');
+  const hasA11y = getChecked('chk-a11y');
+  const hasCookie = getChecked('chk-cookie');
+  const hasAnalytics = getChecked('chk-analytics');
+
+  const chatbotName = getVal('chatbot-name') || 'Assistent';
+  const chatbotTone = getVal('chatbot-tone');
+  const chatbotKnowledge = getVal('chatbot-knowledge');
+  const chatbotLang = getVal('chatbot-lang');
+
+  const extraPages = getExtraPages();
+
+  const colorModeInstructions = {
+    light: 'Heller Modus: Hintergrund in Primärfarbe (falls dunkel) oder Weiß/Hellgrau, kein Dark Mode Toggle benötigt.',
+    dark: 'Dunkler Modus: Hintergrund dunkel, Texte hell, kein Dark Mode Toggle benötigt.',
+    both: 'Beide Modi: Implementiere einen Dark-Mode-Toggle im Header. Standard: Light Mode. Speichere Präferenz in localStorage.'
+  };
+
+  const toneMap = {
+    formal: 'Sie-Form, professionell, sachlich, klar',
+    'semi-formal': 'Überwiegend Sie-Form, warm und einladend, nicht steif',
+    friendly: 'Du-Form, persönlich, einladend, modern'
+  };
+
+  const langMap = {
+    de: 'Deutsch',
+    en: 'Englisch',
+    'de-en': 'Deutsch als Hauptsprache, alle Texte vollständig auf Deutsch. Optionale i18n-Vorbereitung für Englisch.'
+  };
+
+  let pages = ['/ (Startseite)'];
+  for (let i = 2; i <= pageCount; i++) {
+    pages.push(`/seite-${i} (Unterseite ${i})`);
+  }
+  if (hasImprint) pages.push('/impressum (Impressum — vollständiger DSGVO-Platzhalter)');
+  if (hasPrivacy) pages.push('/datenschutz (Datenschutzerklärung — vollständiger DSGVO-Platzhalter)');
+  extraPages.forEach(p => {
+    pages.push(`${p.path}${p.desc ? ' (' + p.desc + ')' : ''}`);
+  });
+
+  let features = [];
+  if (hasContact) features.push('Kontaktformular');
+  if (hasChatbot) features.push('KI-Chatbot (Mistral)');
+  if (hasNewsletter) features.push('Newsletter-Anmeldung');
+  if (hasMap) features.push('Standortkarte (Leaflet/OpenStreetMap)');
+  if (hasFaq) features.push('FAQ-Akkordeon');
+  if (hasTestimonials) features.push('Kundenstimmen');
+  if (hasTeam) features.push('Team-Sektion');
+  if (hasServices) features.push('Leistungsübersicht');
+  if (hasPricing) features.push('Preistabelle');
+  if (hasBlog) features.push('Blog/News-Vorschau');
+  if (hasGallery) features.push('Bildergalerie mit Lightbox');
+  if (hasSocial) features.push('Social Media Links (SVG-Icons)');
+  if (hasStats) features.push('Kennzahlen-Sektion');
+  if (hasPortfolio) features.push('Portfolio/Referenzen');
+  if (hasCookie) features.push('Cookie-Consent-Banner (DSGVO)');
+  if (hasAnalytics) features.push('Analytics-Platzhalter (DSGVO-konform)');
+
+  let technicalReqs = [];
+  if (hasSEO) technicalReqs.push('SEO (Meta-Tags, og:*, sitemap.xml, robots.txt, strukturierte Daten)');
+  if (hasMobile) technicalReqs.push('Mobile-First Responsive Design');
+  if (hasA11y) technicalReqs.push('WCAG 2.1 AA Accessibility');
+
+  let cloudfareFunctions = [];
+  if (hasContact || hasNewsletter) cloudfareFunctions.push('functions/form.js — POST-Handler für Formular-Einträge → Cloudflare D1');
+  if (hasAdmin) cloudfareFunctions.push('functions/admin.js — Admin-Dashboard (Passwort aus env.ADMIN_PASS), zeigt alle Formular-Einträge');
+  if (hasChatbot) cloudfareFunctions.push('functions/ai.js — Mistral-API-Proxy, Rate-Limiting 10 Req/h pro IP via KV-Store');
+
+  const chatbotToneMap = {
+    professional: 'professionell, sachlich, präzise, keine Floskeln',
+    friendly: 'freundlich, warm, einladend, persönlich',
+    expert: 'fachkundig, detailorientiert, kompetent, vertrauenswürdig',
+    casual: 'locker, modern, direkt, sympathisch'
+  };
+
+  const chatbotLangMap = {
+    de: 'Antworte ausschließlich auf Deutsch.',
+    en: 'Respond exclusively in English.',
+    'de-en': 'Erkenne die Sprache des Nutzers automatisch und antworte in derselben Sprache (Deutsch oder Englisch).'
+  };
+
+  let prompt = `Du bist ein professioneller Full-Stack-Webentwickler. Erstelle eine vollständige, produktionsreife Website als ZIP-Datei.
+
+═══════════════════════════════════════════════
+  PROJEKTÜBERSICHT
+═══════════════════════════════════════════════
+
+Unternehmen: ${company}${industry ? '\nBranche: ' + industry : ''}${slogan ? '\nSlogan: ' + slogan : ''}
+${description ? 'Beschreibung: ' + description : ''}
+
+KONTAKTDATEN:
+${phone ? '• Telefon: ' + phone : ''}
+${email ? '• E-Mail: ' + email : ''}
+${address ? '• Adresse: ' + address : ''}
+${website ? '• Website (aktuell): ' + website : ''}
+
+ZIELGRUPPE: ${target || 'Breite Öffentlichkeit, potenzielle Kunden'}
+HAUPT-CTA: ${cta || 'Jetzt Kontakt aufnehmen'}
+SPRACHE: ${langMap[lang] || 'Deutsch'}
+ANSPRACHE: ${toneMap[tone] || 'Förmlich (Sie-Form)'}
+
+═══════════════════════════════════════════════
+  TECHNOLOGIE-STACK (NICHT ABÄNDERN)
+═══════════════════════════════════════════════
+
+FRONTEND:
+• React 18 + Vite 5 (TypeScript optional, JS bevorzugt)
+• Tailwind CSS v3 (vollständige Konfiguration in tailwind.config.js)
+• Lokale Fonts via @fontsource npm-Pakete (KEIN Google Fonts CDN)
+• SVG-Icons ausschließlich via lucide-react (npm) — KEINE Emoji, KEINE Icon-Fonts
+• React Router v6 für Client-Side Routing
+
+BACKEND / SERVERLESS:
+• Cloudflare Pages + Functions (Wrangler-Konfiguration)${cloudfareFunctions.length > 0 ? '\n' + cloudfareFunctions.map(f => '• ' + f).join('\n') : ''}
+
+REGELN FÜR DEN CODE:
+• Keine Emojis in der Website (weder Text noch Markup)
+• Kein KI-Slop: keine generischen Phrasen wie "Unlock your potential", "Empower your business", "Transform your journey" o.ä.
+• Keine seltsamen/kreativen Sektionen ohne konkreten Zweck
+• Alle Texte müssen realistisch und spezifisch für ${company} sein
+• Clean, übersichtliches Layout für Mobile und Desktop
+• Starker, klarer Call-to-Action auf jeder Seite sichtbar
+• Keine externen CDN-Links (alles via npm)
+
+═══════════════════════════════════════════════
+  FARBSCHEMA & DESIGN
+═══════════════════════════════════════════════
+
+FARBEN:
+• Primär:   ${color1}
+• Sekundär: ${color2}  
+• Akzent:   ${color3}
+
+MODUS: ${colorModeInstructions[colorMode] || colorModeInstructions.light}
+
+DESIGN-STIL: ${styleDescriptions[style] || style}
+
+TYPOGRAFIE: ${typographyDescriptions[typography] || typography}
+Installation via npm: @fontsource/[font-name] — KEINE externen Requests
+
+BORDER-RADIUS: ${radiusDescriptions[radius] || radius}
+ANIMATIONEN: ${animationDescriptions[animations] || animations}
+
+TAILWIND-KONFIGURATION (tailwind.config.js):
+• Erweitere das Theme mit den projektspezifischen Farben als CSS-Variablen
+• Definiere 'primary', 'secondary', 'accent' als Tailwind-Farben
+• Konfiguriere die gewählten Fonts als fontFamily-Einträge
+
+═══════════════════════════════════════════════
+  SEITENSTRUKTUR
+═══════════════════════════════════════════════
+
+SEITEN:
+${pages.map((p, i) => `${i + 1}. ${p}`).join('\n')}
+
+JEDE SEITE HAT:
+• Konsistenter Header mit Navigation (sticky, mobiles Hamburger-Menü)
+• Klarer, seitenspezifischer Hero/Intro-Bereich
+• Relevanter Inhalt spezifisch für ${company}
+• Call-to-Action-Element (${cta || 'Kontakt aufnehmen'})
+• Konsistenter Footer mit Kontaktdaten, Navigation, Links zu Impressum/Datenschutz${hasImprint || hasPrivacy ? '' : ''}
+
+STARTSEITE (/) muss enthalten:
+• Hero-Sektion: prägnante Headline (nicht generisch), Subheadline, CTA-Button
+${hasServices ? '• Leistungsübersicht-Sektion' : ''}
+${hasStats ? '• Kennzahlen/Zahlen-Sektion' : ''}
+${hasTestimonials ? '• Kundenstimmen-Sektion' : ''}
+${hasFaq ? '• FAQ-Akkordeon-Sektion' : ''}
+${hasTeam ? '• Team-Sektion' : ''}
+${hasPortfolio ? '• Portfolio/Referenzen-Vorschau' : ''}
+${hasBlog ? '• Neueste Blogbeiträge (Vorschau)' : ''}
+• Abschluss-CTA-Sektion mit ${cta || 'Kontaktaufforderung'}
+
+${hasImprint ? `IMPRESSUM (/impressum):
+• Vollständiger DSGVO-konformer Platzhalter
+• [PLATZHALTER: Firmenname], [PLATZHALTER: Adresse], [PLATZHALTER: Vertreter], [PLATZHALTER: Registereintrag]
+• Klarer Hinweis, dass dies ein Platzhalter ist und vom Kunden zu befüllen ist
+• Alle Pflichtangaben nach §5 TMG als Platzhalter vorhanden
+
+` : ''}${hasPrivacy ? `DATENSCHUTZ (/datenschutz):
+• Vollständiger DSGVO-konformer Platzhalter
+• Abschnitte: Verantwortlicher, Datenerhebung, Cookies, Ihre Rechte, Kontakt
+• Alle Felder als [PLATZHALTER] markiert, die vom Kunden zu befüllen sind
+• Hinweis auf Notwendigkeit der rechtlichen Prüfung durch Anwalt/Datenschutzbeauftragten
+
+` : ''}
+═══════════════════════════════════════════════
+  FEATURES & KOMPONENTEN
+═══════════════════════════════════════════════
+
+${features.length > 0 ? 'AKTIVE FEATURES:\n' + features.map(f => '✓ ' + f).join('\n') : 'Keine optionalen Features aktiv.'}
+
+${hasLogoHave ? `LOGO:
+• Das Logo wird als Dateianhang mitgeschickt
+• Integriere es in Header und Footer
+• Verwende es in optimierter Größe (SVG bevorzugt, PNG als Fallback)
+• KEIN Placeholder-Logo generieren
+` : ''}
+${hasLogoGen ? `LOGO GENERIEREN:
+• Erstelle ein professionelles SVG-Logo für ${company}
+• Stil passend zum Design (${style})
+• Verwende die Primär- und Akzentfarbe
+• Einfach, wiedererkennbar, skalierbar
+• Speichern unter: src/assets/logo.svg
+` : ''}
+${hasContact ? `KONTAKTFORMULAR:
+• Felder: Vorname, Nachname, E-Mail, Telefon (optional), Nachricht, Datenschutz-Checkbox
+• Client-seitige Validierung (React Hook Form oder nativ)
+• Fehlerhinweise auf Deutsch, barrierefrei
+• Submit → POST /api/form → functions/form.js
+• Erfolgsmeldung und Fehlermeldung als UI-Feedback (kein Alert)
+• Honeypot-Feld gegen Spam
+` : ''}
+${hasNewsletter ? `NEWSLETTER-ANMELDUNG:
+• Feld: E-Mail-Adresse, Datenschutz-Checkbox
+• Submit → POST /api/form (type: 'newsletter') → Cloudflare D1
+• Double-Opt-In Hinweistext
+` : ''}
+${hasMap ? `STANDORTKARTE:
+• Leaflet.js via npm (leaflet + react-leaflet)
+• OpenStreetMap-Kacheln (keine API-Keys nötig)
+• Marker mit Popup: Firmenname + Adresse
+• Responsiv, 400px Höhe Desktop / 250px Mobile
+• Importiere Leaflet-CSS korrekt
+` : ''}
+${hasFaq ? `FAQ-SEKTION:
+• Mindestens 6 realistische, spezifische FAQ für ${company}
+• Akkordeon-Komponente (Collapse/Expand) mit sanfter Animation
+• Aria-expanded für Barrierefreiheit
+• Kein generischer Inhalt
+` : ''}
+${hasTestimonials ? `KUNDENSTIMMEN:
+• 3-4 realistische Placeholder-Testimonials (markiert als Platzhalter)
+• Name, Unternehmen/Position, Bewertungstext
+• Kein Karussell (Performance), stattdessen Grid oder gestaffeltes Layout
+` : ''}
+${hasTeam ? `TEAM-SEKTION:
+• Platzhalter-Karten für Mitarbeiter
+• Felder: Foto-Platzhalter, Name, Position, kurze Bio
+• Klar als Platzhalter markiert
+` : ''}
+${hasServices ? `LEISTUNGSÜBERSICHT:
+• 3-6 Leistungskarten spezifisch für ${company}
+• Icon (lucide-react), Titel, kurze Beschreibung
+• Grid-Layout, responsiv
+` : ''}
+${hasPricing ? `PREISTABELLE:
+• 3 Pakete (z.B. Basis, Standard, Premium)
+• Features-Liste mit Check-Icons
+• Hervorgehobenes mittleres Paket
+• CTA-Button je Paket
+• Alle Preise als [PLATZHALTER] markiert
+` : ''}
+${hasBlog ? `BLOG/NEWS:
+• 3 Vorschau-Karten (Titel, Datum, Teaser, "Mehr lesen"-Link)
+• Inhalte als Platzhalter markiert
+• /blog-Seite mit Übersicht
+` : ''}
+${hasGallery ? `BILDERGALERIE:
+• CSS Grid Masonry oder gleichmäßiges Grid
+• Lightbox bei Klick (einfach, kein externes Package)
+• Platzhalter-Bilder (Platzhalter-Text in grauem Rechteck via CSS)
+• Lazy Loading
+` : ''}
+${hasSocial ? `SOCIAL MEDIA:
+• SVG-Icons für alle relevanten Plattformen (aus lucide-react oder custom SVG)
+• Links als [PLATZHALTER_URL] markiert
+• Im Footer und ggf. Header
+` : ''}
+${hasStats ? `KENNZAHLEN:
+• 3-4 Zahlen spezifisch für ${company} (als Platzhalter: [X]+ Kunden, [Y] Jahre Erfahrung)
+• Große Zahl + kleine Beschriftung
+• Counter-Animation optional (wenn ${animations !== 'none'})
+` : ''}
+${hasPortfolio ? `PORTFOLIO/REFERENZEN:
+• 4-6 Projekt-/Referenzkarten
+• Bild-Platzhalter, Titel, kurze Beschreibung
+• Optional: Kategorie-Filter
+• Klar als Platzhalter markiert
+` : ''}
+
+${hasSEO ? `SEO:
+• Meta-Title und Meta-Description für jede Seite (spezifisch, nicht generisch)
+• Open Graph Tags (og:title, og:description, og:image Platzhalter)
+• Strukturierte Daten (JSON-LD): LocalBusiness/Organization für ${company}
+• public/sitemap.xml (alle Seiten)
+• public/robots.txt
+• Canonical URLs
+` : ''}
+${hasA11y ? `ACCESSIBILITY:
+• Alle Bilder: aussagekräftige alt-Attribute
+• Alle interaktiven Elemente: aria-label
+• Skip-Navigation-Link
+• Fokus-Management bei Modals/Menü
+• Farbkontrast WCAG AA (min. 4.5:1 Text, 3:1 UI)
+• Keyboard-Navigation vollständig funktionsfähig
+` : ''}
+${hasCookie ? `COOKIE-BANNER:
+• Erscheint beim ersten Besuch
+• Optionen: Alle akzeptieren / Nur notwendige
+• Speicherung in localStorage
+• Link zur Datenschutzseite
+• Kein Drittanbieter-Service nötig
+` : ''}
+${hasAnalytics ? `ANALYTICS:
+• Leerer Platzhalter in index.html für Analytics-Code
+• Kommentar: "<!-- ANALYTICS: Hier Tracking-Code einfügen (nach DSGVO-Einwilligung) -->"
+• NUR nach Cookie-Consent laden (wenn Cookie-Banner aktiv)
+` : ''}
+
+${hasChatbot ? `═══════════════════════════════════════════════
+  KI-CHATBOT KONFIGURATION
+═══════════════════════════════════════════════
+
+CHATBOT-IMPLEMENTIERUNG:
+• Chat-Widget: Fixed unten rechts (FAB-Button)
+• Chat-Fenster: 360px breit, 480px hoch (Mobile: Fullscreen)
+• Verlauf im Session-State, kein Backend-Speicher für Nachrichten
+• POST /api/chat → functions/ai.js → Mistral API
+• Rate-Limiting: 10 Requests/h pro IP via Cloudflare KV
+• Bei Rate-Limit überschritten: Freundliche Meldung mit Wartezeit
+
+CHATBOT-NAME: ${chatbotName}
+TON: ${chatbotToneMap[chatbotTone] || chatbotToneMap.professional}
+SPRACHE: ${chatbotLangMap[chatbotLang] || chatbotLangMap.de}
+
+SYSTEM-PROMPT FÜR DEN CHATBOT (in functions/ai.js):
+---
+Du bist ${chatbotName}, der digitale Assistent von ${company}.
+
+DEINE AUFGABE:
+Du hilfst Besuchern der Website von ${company} bei Fragen zu Leistungen, Kontakt, Öffnungszeiten und allgemeinen Anfragen. Du bist freundlich, kompetent und kennst das Unternehmen sehr gut.
+
+${chatbotLangMap[chatbotLang] || chatbotLangMap.de}
+TON: ${chatbotToneMap[chatbotTone] || chatbotToneMap.professional}
+
+WISSEN ÜBER ${company.toUpperCase()}:
+${industry ? 'Branche: ' + industry : ''}
+${description ? 'Beschreibung: ' + description : ''}
+${phone ? 'Telefon: ' + phone : ''}
+${email ? 'E-Mail: ' + email : ''}
+${address ? 'Adresse: ' + address : ''}
+${slogan ? 'Slogan: ' + slogan : ''}
+${chatbotKnowledge ? '\nWEITERE INFORMATIONEN:\n' + chatbotKnowledge : ''}
+
+REGELN:
+1. Antworte NUR über Themen, die ${company} betreffen
+2. Bei unbekannten Informationen: "Das kann ich leider nicht beantworten. Kontaktieren Sie uns direkt${phone ? ' unter ' + phone : ''}${email ? ' oder ' + email : ''}."
+3. KEIN Erfinden von Fakten, Preisen oder Informationen
+4. Halte Antworten kurz und klar (max. 3-4 Sätze)
+5. Empfehle bei komplexen Anfragen den direkten Kontakt
+6. KEINE Konkurrenz-Empfehlungen
+7. KEINE Themen außerhalb des Unternehmensbereichs
+8. Sei hilfsbereit, aber bleib professionell
+
+VERBOTEN:
+- Informationen erfinden oder raten
+- Politische Meinungen äußern
+- Persönliche Ratschläge geben
+- Über Konkurrenten sprechen
+---
+
+MISTRAL-KONFIGURATION (functions/ai.js):
+• Modell: mistral-small-latest
+• max_tokens: 300
+• temperature: 0.3 (niedrig = konsistenter, faktentreuer)
+• Konversationskontext: letzten 6 Nachrichten mitschicken
+` : ''}
+
+${(hasContact || hasNewsletter) && hasAdmin ? `═══════════════════════════════════════════════
+  CLOUDFLARE FUNCTIONS DETAILS
+═══════════════════════════════════════════════
+
+functions/form.js:
+• Akzeptiert POST mit JSON-Body
+• Pflichtfelder validieren (server-seitig)
+• Eintrag in Cloudflare D1 Tabelle 'submissions' speichern:
+  - id (autoincrement), type, data (JSON), ip, created_at
+• CORS-Header setzen
+• Response: { success: true } oder { error: "..." }
+• Rate-Limiting: max. 5 Submissions/h pro IP via KV
+
+functions/admin.js:
+• GET /admin → zeigt alle Einträge aus D1
+• Authentifizierung: Basic Auth mit env.ADMIN_PASS
+• HTML-Response (einfaches Admin-Interface, kein React)
+• Tabelle mit allen Einträgen, sortiert nach Datum (neueste zuerst)
+• Filter nach Typ (Kontakt/Newsletter)
+• Export als CSV möglich
+
+wrangler.toml muss enthalten:
+• [[d1_databases]] binding für Submissions
+• [[kv_namespaces]] binding für Rate-Limiting
+• Alle notwendigen Bindings korrekt konfiguriert
+• Kommentare wo Secrets (ADMIN_PASS, MISTRAL_API_KEY) einzutragen sind
+` : ''}
+
+═══════════════════════════════════════════════
+  PROJEKTSTRUKTUR (ZIP-INHALT)
+═══════════════════════════════════════════════
+
+./                          (Vite-Projekt-Root)
+├── package.json            (alle npm-Dependencies)
+├── vite.config.js
+├── tailwind.config.js
+├── postcss.config.js
+├── wrangler.toml           (Cloudflare-Konfiguration)
+├── index.html
+├── .gitignore
+├── README.md               (Setup-Anleitung auf Deutsch)
+├── public/
+│   ├── favicon.svg         (generiertes SVG-Favicon passend zur CI)${hasSEO ? '\n│   ├── sitemap.xml\n│   └── robots.txt' : ''}
+├── src/
+│   ├── main.jsx
+│   ├── App.jsx             (Router-Konfiguration)
+│   ├── index.css           (Tailwind-Directives + CSS-Variablen)
+│   ├── assets/
+│   │   └── logo.svg        ${hasLogoGen ? '(generiertes SVG-Logo)' : '(Platzhalter oder eingereichtes Logo)'}
+│   ├── components/
+│   │   ├── Header.jsx      (Navigation, Logo, CTA-Button)
+│   │   ├── Footer.jsx      (Links, Kontakt, Social)
+│   │   ├── Hero.jsx
+│   │   ├── Button.jsx      (wiederverwendbare Button-Komponente)
+│   │   └── ...weitere nach Features
+│   └── pages/
+│       ├── Home.jsx${pages.filter(p => p.includes('/') && !p.startsWith('/')).length > 0 ? '\n│       ├── ...' : ''}
+│       ${hasImprint ? '├── Impressum.jsx' : ''}
+│       ${hasPrivacy ? '└── Datenschutz.jsx' : ''}
+${cloudfareFunctions.length > 0 ? `├── functions/
+${hasContact || hasNewsletter ? '│   ├── form.js\n' : ''}${hasAdmin ? '│   ├── admin.js\n' : ''}${hasChatbot ? '│   └── ai.js\n' : ''}` : ''}└── schema.sql              (D1-Tabellen-Schema für 'wrangler d1 execute')
+
+═══════════════════════════════════════════════
+  QUALITÄTSANFORDERUNGEN
+═══════════════════════════════════════════════
+
+CODE-QUALITÄT:
+• Komponenten: sauber, wiederverwendbar, Props dokumentiert
+• Keine console.log in Production
+• Keine TODO-Kommentare außer an Platzhaltern
+• Konsistente Benennung (camelCase JS, kebab-case CSS-Klassen)
+• Kein toter Code, keine ungenutzten Imports
+
+DESIGN-QUALITÄT:
+• Pixelgenaue Abstände (konsistentes Spacing-System via Tailwind)
+• Typografische Hierarchie klar erkennbar
+• Jede Sektion hat einen klaren Zweck
+• Kein "Lorem Ipsum" — alle Texte müssen zu ${company} passen
+• Bilder-Platzhalter: CSS-Rechtecke mit Farbe + Text, kein externes Service
+
+PERFORMANCE:
+• Lazy Loading für Seiten (React.lazy + Suspense)
+• Bilder: Platzhalter mit korrekten Aspect-Ratios
+• Keine unnötigen Re-Renders
+• Bundle-Splitting via Vite
+
+OUTPUT:
+• ZIP-Datei mit vollständiger, lauffähiger Projektstruktur
+• README.md mit Schritt-für-Schritt Setup-Anleitung:
+  1. npm install
+  2. Wrangler-Setup (D1, KV erstellen)
+  3. Secrets setzen
+  4. npm run dev (lokal)
+  5. npm run build + wrangler pages deploy
+
+${extra ? `═══════════════════════════════════════════════
+  ZUSÄTZLICHE ANFORDERUNGEN
+═══════════════════════════════════════════════
+
+${extra}
+
+` : ''}${hasLogoHave ? `═══════════════════════════════════════════════
+  HINWEIS ZU DATEIANHÄNGEN
+═══════════════════════════════════════════════
+
+Das Logo wird als Dateianhang in dieser Konversation mitgeschickt.
+Verwende es direkt in src/assets/logo.svg (oder logo.png).
+Optimiere es für Web-Verwendung (Header: max. 180px Breite, Footer: max. 120px).
+
+` : ''}Erstelle jetzt die vollständige ZIP-Datei mit allen beschriebenen Komponenten und Konfigurationen. Stelle sicher, dass das Projekt nach "npm install" und korrekter Cloudflare-Konfiguration sofort lauffähig ist.`;
+
+  document.getElementById('prompt-output').textContent = prompt;
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-output').textContent;
+  if (!text || text.includes('Firmenname eingeben')) return;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.copy-btn, .btn-primary');
+    btns.forEach(btn => {
+      const orig = btn.textContent;
+      btn.textContent = '✓ Kopiert';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  });
+}
+
+function resetForm() {
+  if (!confirm('Formular zurücksetzen?')) return;
+  document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input[type="url"], textarea').forEach(el => el.value = '');
+  document.getElementById('color1').value = '#1a1a2e';
+  document.getElementById('hex1').value = '#1a1a2e';
+  document.getElementById('color2').value = '#f8f8f8';
+  document.getElementById('hex2').value = '#f8f8f8';
+  document.getElementById('color3').value = '#2b6cb0';
+  document.getElementById('hex3').value = '#2b6cb0';
+  document.getElementById('pageCount').value = 3;
+  document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+    el.checked = ['chk-imprint','chk-privacy','chk-admin','chk-seo','chk-mobile','chk-a11y'].includes(el.id);
+    toggle(el);
+  });
+  document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = el.value === 'minimal');
+  document.querySelectorAll('.radio-item').forEach(el => el.classList.remove('selected'));
+  const firstRadio = document.querySelector('#design-style .radio-item');
+  if (firstRadio) firstRadio.classList.add('selected');
+  document.getElementById('extra-pages').innerHTML = '';
+  document.getElementById('chatbot-settings').classList.remove('visible');
+  generate();
+}
+
+window.addEventListener('scroll', () => {
+  document.getElementById('scroll-top').classList.toggle('visible', window.scrollY > 300);
+});
+
+generate();
+</script>
+</body>
+</html>
