@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claude Website Prompt Generator</title>
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #11151b;
+      --panel-2: #0f1318;
+      --border: #232a35;
+      --text: #e7edf6;
+      --muted: #9aa7b8;
+      --accent: #6ea8ff;
+      --accent-2: #7b88a8;
+      --danger: #ff6b6b;
+      --ok: #58d68d;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --gap: 16px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at top left, rgba(110,168,255,0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,255,255,0.06), transparent 24%),
+        linear-gradient(180deg, #090b0f 0%, #0b0d10 100%);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 20px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(17,21,27,0.96), rgba(13,17,22,0.96));
+      border-radius: calc(var(--radius) + 4px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 92ch;
+      line-height: 1.5;
+    }
+
+    .pillrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,0.02);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.92fr) minmax(420px, 1.08fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(17,21,27,0.98), rgba(12,16,21,0.98));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-header h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .card-header span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .card-body {
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 13px;
+      outline: none;
+      font: inherit;
+      transition: border-color .15s ease, transform .15s ease, background .15s ease;
+    }
+
+    textarea { min-height: 110px; resize: vertical; }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(110,168,255,0.8);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .color-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .color-box {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,0.02);
+      display: grid;
+      gap: 10px;
+    }
+
+    .color-box .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input[type="color"] {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      padding: 12px;
+      border-radius: 14px;
+      min-height: 54px;
+    }
+
+    .check input {
+      margin-top: 2px;
+      accent-color: var(--accent);
+      transform: scale(1.08);
+    }
+
+    .check span {
+      display: grid;
+      gap: 3px;
+    }
+
+    .check strong { font-size: 13px; }
+    .check small { color: var(--muted); font-size: 11.5px; line-height: 1.35; }
+
+    .pages-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .page-item {
+      display: grid;
+      grid-template-columns: 140px 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .page-item button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); border-color: rgba(110,168,255,0.55); }
+    .btn.primary {
+      background: linear-gradient(180deg, rgba(110,168,255,0.25), rgba(110,168,255,0.14));
+      border-color: rgba(110,168,255,0.55);
+    }
+
+    .btn.danger { border-color: rgba(255,107,107,0.42); }
+
+    .output-tools {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .output-tools .btn { padding: 10px 12px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+      border-radius: 14px;
+      padding: 12px;
+    }
+
+    .stat .k {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .stat .v {
+      font-size: 15px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .output {
+      width: 100%;
+      min-height: 620px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12.7px;
+      line-height: 1.55;
+      white-space: pre;
+      background: #0a0d11;
+    }
+
+    .footer-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .sep {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    .tight { margin-top: -2px; }
+
+    @media (max-width: 1120px) {
+      .layout { grid-template-columns: 1fr; }
+      .output { min-height: 440px; }
+    }
+
+    @media (max-width: 760px) {
+      .wrap { padding: 14px; }
+      .hero, .card-body, .card-header { padding-left: 14px; padding-right: 14px; }
+      .grid.two, .grid.three, .checkbox-grid, .color-row, .stats { grid-template-columns: 1fr; }
+      .page-item { grid-template-columns: 1fr; }
+      .page-item button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Claude Website Prompt Generator</h1>
+      <p>Erzeugt einen kopierbaren System-/Projektprompt für eine One-Shot-Website mit Dateianhängen. Fokus: React + Vite + Tailwind, sauberes UI, keine Emojis, kein Slop, klare Ordnerstruktur, formulierbarer Output für Claude.</p>
+      <div class="pillrow">
+        <div class="pill">ReactJS + Vite + Tailwind</div>
+        <div class="pill">Lokale Fonts via npm</div>
+        <div class="pill">SVGs via npm</div>
+        <div class="pill">Mobile + Desktop</div>
+        <div class="pill">ZIP als Output</div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <div class="card-header">
+          <h2>Eingaben</h2>
+          <span>Alle relevanten Felder sind direkt im Prompt abbildbar.</span>
+        </div>
+        <div class="card-body">
+          <div class="grid two">
+            <div class="field">
+              <label for="kunde">Kunde</label>
+              <input id="kunde" type="text" placeholder="z. B. Max Mustermann" />
+            </div>
+            <div class="field">
+              <label for="firmenname">Firmenname</label>
+              <input id="firmenname" type="text" placeholder="z. B. Muster GmbH" />
+            </div>
+            <div class="field">
+              <label for="tel">Telefon</label>
+              <input id="tel" type="tel" placeholder="+49 ..." />
+            </div>
+            <div class="field">
+              <label for="email">E-Mail</label>
+              <input id="email" type="email" placeholder="info@example.de" />
+            </div>
+            <div class="field">
+              <label for="seiten">Anzahl an Seiten</label>
+              <input id="seiten" type="number" min="1" value="5" />
+            </div>
+            <div class="field">
+              <label for="design">Designstil</label>
+              <select id="design">
+                <option value="minimalistisch">Minimalistisch</option>
+                <option value="traditionell">Traditionell</option>
+                <option value="modern-elegant">Modern-elegant</option>
+                <option value="luxuriös">Luxuriös</option>
+                <option value="technisch">Technisch</option>
+                <option value="editorial">Editorial</option>
+                <option value="corporate">Corporate</option>
+                <option value="clean-premium">Clean / Premium</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="field">
+            <label>Farbschema</label>
+            <div class="hint tight">Standard: Schwarz, Weiß, dezentes Blau. Palette wird im Prompt exakt genannt.</div>
+            <div class="color-row" style="margin-top:8px;">
+              <div class="color-box">
+                <div class="row"><input id="c1" type="color" value="#0b0d10" /><input id="c1t" type="text" value="Schwarz" /></div>
+                <div class="hint">Primär / Hintergrund</div>
+              </div>
+              <div class="color-box">
+                <div class="row"><input id="c2" type="color" value="#f5f7fa" /><input id="c2t" type="text" value="Weiß" /></div>
+                <div class="hint">Flächen / Texthelligkeit</div>
+              </div>
+              <div class="color-box">
+                <div class="row"><input id="c3" type="color" value="#6ea8ff" /><input id="c3t" type="text" value="Abgeschwächtes Blau" /></div>
+                <div class="hint">Akzent / CTA</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="field">
+            <label>Features</label>
+            <div class="checkbox-grid" id="featureGrid">
+              <label class="check"><input type="checkbox" data-label="Kontaktformular" checked><span><strong>Kontaktformular</strong><small>Formular mit sauberen Validierungen.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="KI-Chatbot"><span><strong>KI-Chatbot</strong><small>Chat-Komponente mit Backend-Anbindung.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Unternehmensbeschreibung" checked><span><strong>Unternehmensbeschreibung</strong><small>Über uns / Leistungen / Werte.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Logo vorhanden / Logo generieren" checked><span><strong>Logo vorhanden / generieren</strong><small>Logo-Status und Platzhalter berücksichtigen.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Call-to-Action" checked><span><strong>Call-to-Action</strong><small>Klare CTA-Elemente für Conversion.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="FAQ"><span><strong>FAQ</strong><small>Typische Fragen und Antworten.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Leistungsübersicht" checked><span><strong>Leistungsübersicht</strong><small>Services als strukturierte Karten.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Referenzen / Testimonials"><span><strong>Referenzen / Testimonials</strong><small>Optional für Vertrauen und Social Proof.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Preise / Pakete"><span><strong>Preise / Pakete</strong><small>Falls passend, klar und kompakt.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Team / Ansprechpartner"><span><strong>Team / Ansprechpartner</strong><small>Kontakt- und Vertrauenselemente.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Impressum und Datenschutz Platzhalter" checked><span><strong>Impressum / Datenschutz</strong><small>Nur Platzhalter im Code generieren.</small></span></label>
+              <label class="check"><input type="checkbox" data-label="Mehrsprachigkeit"><span><strong>Mehrsprachigkeit</strong><small>Nur falls explizit benötigt.</small></span></label>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="grid two">
+            <div class="field">
+              <label for="logoStatus">Logo</label>
+              <select id="logoStatus">
+                <option value="vorhanden">Logo vorhanden</option>
+                <option value="generieren">Logo generieren</option>
+                <option value="platzhalter">Nur Platzhalter</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="tone">Tonality</label>
+              <select id="tone">
+                <option value="sachlich, präzise, vertrauenswürdig">Sachlich / präzise / vertrauenswürdig</option>
+                <option value="modern, direkt, professionell">Modern / direkt / professionell</option>
+                <option value="hochwertig, ruhig, klar">Hochwertig / ruhig / klar</option>
+                <option value="seriös, minimal, conversion-stark">Seriös / minimal / conversion-stark</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="field">
+            <label for="seitenliste">Zusätzliche Seiten</label>
+            <textarea id="seitenliste" placeholder="/xy — kurze Beschreibung\n/leistungen/xy — kurze Beschreibung\n/landing-page — kurze Beschreibung"></textarea>
+            <div class="hint">Eine Zeile pro Seite. Format: <code>/pfad — kurze Beschreibung</code></div>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="field">
+            <label for="special">Weitere Vorgaben</label>
+            <textarea id="special" placeholder="Z. B. keine hero-überladung, nur eine Haupt-CTA, deutschsprachig, keine Stock-Fotos, etc."></textarea>
+          </div>
+
+          <div class="sep"></div>
+
+          <div class="field">
+            <label>Zusätzliche technische Vorgaben</label>
+            <div class="grid two">
+              <label class="check"><input type="checkbox" id="reqReact" checked><span><strong>ReactJS + Vite + Tailwind</strong><small>Immer exakt diese Basis.</small></span></label>
+              <label class="check"><input type="checkbox" id="reqFonts" checked><span><strong>Lokale Fonts via npm</strong><small>Seriöse Typografie, keine externen CDNs.</small></span></label>
+              <label class="check"><input type="checkbox" id="reqSvg" checked><span><strong>SVGs via npm</strong><small>Icon-/SVG-Komponenten aus npm.</small></span></label>
+              <label class="check"><input type="checkbox" id="reqNoEmoji" checked><span><strong>Keine Emojis</strong><small>Kein KI-Slop, keine Spielereien.</small></span></label>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" id="generateBtn" type="button">Prompt generieren</button>
+            <button class="btn" id="copyBtn" type="button">In Zwischenablage</button>
+            <button class="btn danger" id="resetBtn" type="button">Zurücksetzen</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Ausgabe</h2>
+          <span>Direkt kopierbar für Claude.</span>
+        </div>
+        <div class="card-body">
+          <div class="stats">
+            <div class="stat"><div class="k">Projekt</div><div class="v" id="statProject">—</div></div>
+            <div class="stat"><div class="k">Seiten</div><div class="v" id="statPages">—</div></div>
+            <div class="stat"><div class="k">Features</div><div class="v" id="statFeatures">—</div></div>
+          </div>
+          <div class="output-tools" style="margin-bottom:10px;">
+            <button class="btn" id="selectBtn" type="button">Alles markieren</button>
+            <button class="btn" id="downloadBtn" type="button">TXT herunterladen</button>
+          </div>
+          <textarea id="output" class="output" spellcheck="false"></textarea>
+          <div class="footer-note">
+            Die Ausgabe ist so formuliert, dass Claude direkt eine Website generieren kann. Die Systemanweisungen sind bewusst strikt, damit kein unnötiger Fülltext oder visuelles Chaos entsteht.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    const defaults = {
+      kunde: '',
+      firmenname: '',
+      tel: '',
+      email: '',
+      seiten: 5,
+      design: 'minimalistisch',
+      c1: '#0b0d10',
+      c2: '#f5f7fa',
+      c3: '#6ea8ff',
+      c1t: 'Schwarz',
+      c2t: 'Weiß',
+      c3t: 'Abgeschwächtes Blau',
+      logoStatus: 'vorhanden',
+      tone: 'sachlich, präzise, vertrauenswürdig',
+      seitenliste: '',
+      special: '',
+      reqReact: true,
+      reqFonts: true,
+      reqSvg: true,
+      reqNoEmoji: true,
+    };
+
+    function setDefaults() {
+      for (const [k, v] of Object.entries(defaults)) {
+        const el = document.getElementById(k);
+        if (!el) continue;
+        if (el.type === 'checkbox') el.checked = !!v;
+        else el.value = v;
+      }
+      $$('#featureGrid input[type="checkbox"]').forEach((cb, idx) => {
+        const label = cb.dataset.label;
+        cb.checked = ['Kontaktformular', 'Unternehmensbeschreibung', 'Logo vorhanden / Logo generieren', 'Impressum und Datenschutz Platzhalter', 'Call-to-Action', 'Leistungsübersicht'].includes(label);
+      });
+      generatePrompt();
+    }
+
+    function escapeMd(text) {
+      return String(text || '').trim();
+    }
+
+    function checkedFeatures() {
+      return $$('#featureGrid input[type="checkbox"]')
+        .filter(cb => cb.checked)
+        .map(cb => cb.dataset.label);
+    }
+
+    function parseAdditionalPages(raw) {
+      const lines = String(raw || '')
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+
+      return lines.map(line => {
+        const parts = line.split(/\s+[–—-]\s+/);
+        const path = (parts[0] || '').trim();
+        const desc = (parts.slice(1).join(' - ') || '').trim();
+        return { path, desc };
+      }).filter(p => p.path);
+    }
+
+    function formatAdditionalPages(pages) {
+      if (!pages.length) return 'Keine zusätzlichen Seiten.';
+      return pages.map(p => `- ${p.path}${p.desc ? ` — ${p.desc}` : ''}`).join('\n');
+    }
+
+    function techBlock() {
+      const active = [];
+      if ($('#reqReact').checked) active.push('ReactJS + Vite + Tailwind');
+      if ($('#reqFonts').checked) active.push('lokale Fonts via npm');
+      if ($('#reqSvg').checked) active.push('SVG-Komponenten aus npm');
+      if ($('#reqNoEmoji').checked) active.push('keine Emojis / kein KI-Slop');
+      return active.join(' | ');
+    }
+
+    function buildPrompt() {
+      const kunde = escapeMd($('#kunde').value) || 'nicht angegeben';
+      const firmenname = escapeMd($('#firmenname').value) || 'nicht angegeben';
+      const tel = escapeMd($('#tel').value) || 'nicht angegeben';
+      const email = escapeMd($('#email').value) || 'nicht angegeben';
+      const seiten = Math.max(1, parseInt($('#seiten').value || '1', 10) || 1);
+      const design = $('#design').value;
+      const logoStatus = $('#logoStatus').value;
+      const tone = $('#tone').value;
+      const c1 = `${$('#c1t').value || 'Farbe 1'} (${$('#c1').value})`;
+      const c2 = `${$('#c2t').value || 'Farbe 2'} (${$('#c2').value})`;
+      const c3 = `${$('#c3t').value || 'Farbe 3'} (${$('#c3').value})`;
+      const pages = parseAdditionalPages($('#seitenliste').value);
+      const extra = ($('#special').value || '').trim();
+      const features = checkedFeatures();
+      const featureText = features.length ? features.map(f => `- ${f}`).join('\n') : '- keine zusätzlichen Features ausgewählt';
+
+      const systemPrompt = `Du bist ein senior Frontend- und Full-Stack-Engineer. Erstelle die Website in einem einzigen, sauberen One-Shot-Ergebnis auf Basis der angehängten Dateien und der folgenden Vorgaben. Antworte ausschließlich mit der fertigen Lösung. Kein Over-Explaining, kein Fülltext, keine unnötigen Varianten.
+
+Ziel:
+- Eine moderne, seriöse, conversion-starke Website für ${firmenname}.
+- Sauberes, klares Layout.
+- Keine KI-typischen, generischen Sektionen.
+- Kein Slop, keine Emojis, keine überladene Optik.
+- Mobile und Desktop gleichwertig gut.
+- Klare Call-to-Actions.
+- Inhalt und Struktur müssen professionell, kompakt und glaubwürdig wirken.
+
+Pflicht-Technologien:
+- ReactJS + Vite + Tailwind.
+- Beautiful Designing, aber ohne visuelles Chaos.
+- Lokale Fonts über npm.
+- SVGs/Icons über npm.
+- Kein CDN-basiertes Styling für das Hauptlayout.
+- Kein Emoji-Einsatz.
+- Kein KI-Slop, keine unnötigen Effekte, keine pseudo-luxuriösen Übertreibungen.
+
+Projektinformationen:
+- Kunde: ${kunde}
+- Firmenname: ${firmenname}
+- Telefon: ${tel}
+- E-Mail: ${email}
+- Seitenanzahl: ${seiten}
+- Designstil: ${design}
+- Tonalität: ${tone}
+- Logo-Status: ${logoStatus}
+
+Farbkonzept:
+- ${c1}
+- ${c2}
+- ${c3}
+- Das Standardgefühl soll schwarz / weiß / abgeschwächtes Blau bleiben. Nur bei Bedarf feinjustieren.
+
+Pflichtfunktionen und Inhalte:
+${featureText}
+
+Seitenstruktur:
+- Erstelle genau ${seiten} inhaltliche Seiten, sofern sinnvoll.
+- Zusätzliche manuelle Seiten:
+${formatAdditionalPages(pages)}
+- Impressum und Datenschutz nur als Platzhalter-Seiten oder Platzhalter-Inhalte erzeugen, keine Rechtsberatung, keine fertigen Rechtstexte.
+- Wenn eine Seite nicht sinnvoll ist, ersetze sie durch eine logisch passende Seite statt leere Fläche zu lassen.
+
+Gestaltung:
+- Sehr klare Hierarchie.
+- Kein unnötiges Sektionen-Chaos.
+- Wenige, starke Sektionen mit hoher Informationsdichte.
+- Saubere Typografie.
+- Gute Abstände.
+- Primäre CTA sichtbar, sekundäre CTA dezent.
+- Inhalte kompakt, professionell und glaubwürdig.
+- Kein übertriebenes Motion-Design.
+- Keine verspielt wirkenden UI-Elemente.
+
+Umsetzung:
+- Generiere die komplette Website so, dass sie direkt produktionsnah verwendbar ist.
+- Berücksichtige responsive Layouts, saubere Komponentenstruktur und gute Wiederverwendbarkeit.
+- Vermeide redundante Komponenten.
+- Schreibe klare, wartbare Code-Struktur.
+- Verwende sinnvolle placeholders, falls konkrete Inhalte fehlen.
+
+Ausgabeanforderung:
+- Gib das Ergebnis so aus, dass es direkt als Projektdatei verwendet werden kann.
+- Falls Dateien anzugeben sind, halte dich an eine klare Struktur.
+- Keine Erklärungen außerhalb des benötigten Outputs.
+
+Zusätzlicher Wunsch:
+${extra || 'Keine weiteren Vorgaben.'}`;
+
+      const folderBlock = `Erwartete Struktur:
+./ = Vite-Projekt
+./functions/form.js => Datenbank-Storage für Einträge
+./functions/admin.js => Admin-Ansicht für Form-Posts, geschützt über env.ADMIN_PASS (Cloudflare Secret)
+./functions/ai.js => onRequest(...) mit Mistral-API-Integration
+Rate Limit: 10 Requests pro IP und Stunde
+System Prompt für Chatbot: Alle Wissensbasis liegt ausschließlich im System Prompt
+`;
+
+      return `${systemPrompt}\n\n${folderBlock}\nWichtige Regeln für die Implementierung:\n- Formulardaten sicher speichern.
+- Admin-Dashboard nur nach Passwort-Zugriff.
+- AI-Endpoint mit sinnvollem System Prompt für den Chatbot.
+- Limitierung pro IP strikt durchsetzen.
+- Kein unsauberes Layout, keine komischen Sektionen, keine Füllflächen.\n`;
+    }
+
+    function syncStats() {
+      const kunde = $('#kunde').value.trim() || '—';
+      const seiten = $('#seiten').value || '—';
+      const features = checkedFeatures().length || '—';
+      $('#statProject').textContent = $('#firmenname').value.trim() || kunde;
+      $('#statPages').textContent = String(seiten);
+      $('#statFeatures').textContent = String(features);
+    }
+
+    function generatePrompt() {
+      const prompt = buildPrompt();
+      $('#output').value = prompt;
+      syncStats();
+      return prompt;
+    }
+
+    async function copyOutput() {
+      const text = $('#output').value;
+      try {
+        await navigator.clipboard.writeText(text);
+        $('#copyBtn').textContent = 'Kopiert';
+        setTimeout(() => ($('#copyBtn').textContent = 'In Zwischenablage'), 1000);
+      } catch {
+        $('#output').focus();
+        $('#output').select();
+        document.execCommand('copy');
+      }
+    }
+
+    function downloadTxt() {
+      const blob = new Blob([$('#output').value], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'claude-website-prompt.txt';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    $('#generateBtn').addEventListener('click', generatePrompt);
+    $('#copyBtn').addEventListener('click', copyOutput);
+    $('#downloadBtn').addEventListener('click', downloadTxt);
+    $('#selectBtn').addEventListener('click', () => {
+      const out = $('#output');
+      out.focus();
+      out.select();
+    });
+    $('#resetBtn').addEventListener('click', setDefaults);
+
+    ['input', 'change'].forEach(evt => {
+      document.addEventListener(evt, (e) => {
+        if (e.target.closest('.card')) {
+          generatePrompt();
+        }
+      });
+    });
+
+    setDefaults();
+  </script>
+</body>
+</html>
