@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Website Prompt Generator</title>
+<style>
+:root {
+  --bg: #0c0c0d;
+  --surface: #141415;
+  --surface2: #1c1c1e;
+  --surface3: #242426;
+  --border: #2a2a2d;
+  --border2: #38383c;
+  --text: #f0f0f0;
+  --text2: #9a9a9f;
+  --text3: #56565c;
+  --accent: #4a7cf7;
+  --accent-hover: #5a8cf8;
+  --accent-dim: #1a2845;
+  --accent-border: #2a4070;
+  --green: #34c759;
+  --green-dim: #0f2a1a;
+  --green-border: #1a4a2a;
+  --red: #ff453a;
+  --amber: #ff9f0a;
+  --r: 5px;
+  --r-lg: 9px;
+  --r-xl: 13px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  font-size: 13.5px;
+  line-height: 1.55;
+  height: 100%;
+  overflow: hidden;
+}
+.shell {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+.sidebar-top {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.sidebar-top h1 {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.sidebar-top p { font-size: 11.5px; color: var(--text3); margin-top: 2px; }
+.sidebar-scroll { overflow-y: auto; flex: 1; padding-bottom: 20px; }
+.sidebar-scroll::-webkit-scrollbar { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ── SECTIONS ── */
+.sec {
+  border-bottom: 1px solid var(--border);
+}
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 18px;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+.sec-head:hover { background: var(--surface2); }
+.sec-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: var(--text3);
+}
+.sec-arrow {
+  width: 14px;
+  height: 14px;
+  color: var(--text3);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.sec-arrow.open { transform: rotate(90deg); }
+.sec-body {
+  padding: 4px 18px 16px;
+  display: none;
+}
+.sec-body.open { display: block; }
+
+/* ── FIELDS ── */
+.f { margin-bottom: 10px; }
+.f:last-child { margin-bottom: 0; }
+.f > label {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text2);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+input[type=text], input[type=tel], input[type=email], input[type=url],
+input[type=number], textarea, select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 68px; line-height: 1.5; }
+select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2356565c'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+/* ── COLORS ── */
+.color-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+input[type=color] {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface2);
+  padding: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.hex-in { font-family: 'Menlo','Consolas',monospace; font-size: 12px; }
+
+/* ── CHECKBOX ITEMS ── */
+.cb-list { display: flex; flex-direction: column; gap: 5px; }
+.cb-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface2);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+.cb-item:hover { border-color: var(--border2); }
+.cb-item.on { border-color: var(--accent-border); background: var(--accent-dim); }
+.cb-item input[type=checkbox] { display: none; }
+.cb-check {
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--border2);
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.cb-item.on .cb-check { background: var(--accent); border-color: var(--accent); }
+.cb-check-svg { display: none; }
+.cb-item.on .cb-check-svg { display: block; }
+.cb-text {}
+.cb-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+.cb-sub { font-size: 11px; color: var(--text3); margin-top: 1px; line-height: 1.3; }
+
+/* ── RADIO ── */
+.rb-list { display: flex; flex-direction: column; gap: 5px; }
+.rb-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--surface2);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+.rb-item:hover { border-color: var(--border2); }
+.rb-item.on { border-color: var(--accent-border); background: var(--accent-dim); }
+.rb-item input[type=radio] { display: none; }
+.rb-dot {
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--border2);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.rb-item.on .rb-dot { border-color: var(--accent); }
+.rb-inner { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: none; }
+.rb-item.on .rb-inner { display: block; }
+.rb-label { font-size: 13px; color: var(--text); }
+.rb-sub { font-size: 11px; color: var(--text3); margin-left: auto; }
+
+/* ── STEPPER ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  width: 120px;
+  background: var(--surface2);
+}
+.stepper button {
+  background: none;
+  border: none;
+  color: var(--text2);
+  width: 32px;
+  height: 32px;
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+}
+.stepper button:hover { background: var(--surface3); color: var(--text); }
+.stepper input {
+  border: none;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  text-align: center;
+  flex: 1;
+  padding: 7px 2px;
+  font-size: 13px;
+  background: var(--surface2);
+  width: 0;
+}
+
+/* ── EXTRA PAGES ── */
+.pages-list { display: flex; flex-direction: column; gap: 5px; }
+.page-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 28px;
+  gap: 5px;
+  align-items: center;
+}
+.page-row input { font-family: 'Menlo','Consolas',monospace; font-size: 12px; }
+.rm-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.rm-btn:hover { border-color: var(--red); color: var(--red); }
+.add-btn {
+  width: 100%;
+  background: none;
+  border: 1px dashed var(--border2);
+  color: var(--text3);
+  font-size: 12px;
+  padding: 7px;
+  border-radius: var(--r);
+  cursor: pointer;
+  margin-top: 6px;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.add-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── SUB-PANEL ── */
+.sub-panel {
+  display: none;
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.sub-panel.open { display: block; }
+
+/* ── MAIN ── */
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.main-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+  gap: 12px;
+}
+.main-top-left h2 { font-size: 13.5px; font-weight: 600; letter-spacing: -0.2px; }
+.main-top-left p { font-size: 11.5px; color: var(--text3); margin-top: 1px; }
+.main-actions { display: flex; gap: 7px; flex-shrink: 0; }
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 10px 22px 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.tab {
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text2); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── PROMPT OUTPUT ── */
+.output-wrap {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.tab-content { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.tab-content.active { display: flex; }
+.output-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 22px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.output-meta { display: flex; align-items: center; gap: 10px; }
+.output-meta span { font-size: 11px; color: var(--text3); }
+.char-count { font-family: 'Menlo','Consolas',monospace; }
+.badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.badge-blue { background: var(--accent-dim); color: var(--accent); border: 1px solid var(--accent-border); }
+.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+#prompt-text {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px;
+  font-family: 'Menlo', 'Consolas', 'Fira Mono', monospace;
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#prompt-text::-webkit-scrollbar { width: 5px; }
+#prompt-text::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+.placeholder-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text3);
+  font-family: inherit;
+  gap: 8px;
+  font-size: 13px;
+}
+.placeholder-msg svg { opacity: 0.2; }
+
+/* Preview tab */
+#preview-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+}
+#preview-content::-webkit-scrollbar { width: 5px; }
+#preview-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+.preview-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.preview-card h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); margin-bottom: 10px; }
+.preview-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.preview-row:last-child { border-bottom: none; }
+.preview-row .pk { color: var(--text2); }
+.preview-row .pv { color: var(--text); font-weight: 500; text-align: right; max-width: 60%; }
+.feature-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+.pill {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 500;
+}
+.color-swatch { width: 18px; height: 18px; border-radius: 4px; display: inline-block; border: 1px solid rgba(255,255,255,0.1); vertical-align: middle; margin-right: 5px; }
+
+/* Chatbot preview tab */
+#chatbot-preview {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px;
+  font-family: 'Menlo','Consolas',monospace;
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+#chatbot-preview::-webkit-scrollbar { width: 5px; }
+#chatbot-preview::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 7px 14px;
+  border-radius: var(--r);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-secondary { background: var(--surface3); color: var(--text2); }
+.btn-secondary:hover { color: var(--text); border-color: var(--border2); }
+.btn-ghost { background: none; color: var(--text3); border-color: transparent; }
+.btn-ghost:hover { color: var(--text2); border-color: var(--border); }
+.btn-sm { padding: 5px 10px; font-size: 11.5px; }
+.btn-success { background: var(--green-dim); color: var(--green); border-color: var(--green-border); }
+
+/* ── HINT ── */
+.hint { font-size: 11px; color: var(--text3); margin-top: 5px; line-height: 1.4; }
+
+/* ── DIVIDER ── */
+.div-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text3); font-weight: 600; margin: 10px 0 7px; }
+
+/* ── SOCIAL INPUTS ── */
+.social-row { display: grid; grid-template-columns: 90px 1fr; gap: 6px; align-items: center; margin-bottom: 5px; }
+.social-row span { font-size: 12px; color: var(--text2); font-weight: 500; }
+
+/* scrollbar thin */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* toast */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 16px;
+  border-radius: var(--r-lg);
+  font-size: 12.5px;
+  font-weight: 500;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transform: translateY(60px);
+  opacity: 0;
+  transition: all 0.25s ease;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+/* stat bar */
+.stat-bar { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat { font-size: 11px; color: var(--text3); }
+.stat strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <h1>Website Prompt Generator</h1>
+    <p>Fülle das Formular aus — der Claude-Prompt wird live erstellt</p>
+  </div>
+  <div class="sidebar-scroll">
+
+    <!-- 1. KUNDENDATEN -->
+    <div class="sec" id="s-client">
+      <div class="sec-head" onclick="toggleSec('s-client')">
+        <span class="sec-title">Kundendaten</span>
+        <svg class="sec-arrow open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+      <div class="sec-body open">
+        <div class="f"><label>Firmenname *</label><input type="text" id="company" placeholder="z.B. Müller GmbH" oninput="gen()"></div>
+        <div class="f"><label>Branche / Geschäftsfeld</label><input type="text" id="industry" placeholder="z.B. Steuerberatung, IT-Dienstleister, Handwerk" oninput="gen()"></div>
+        <div class="row2">
+          <div class="f"><label>Telefon</label><input type="tel" id="phone" placeholder="+49 89 123456" oninput="gen()"></div>
+          <div class="f"><label>E-Mail</label><input type="email" id="email" placeholder="info@firma.de" oninput="gen()"></div>
+        </div>
+        <div class="f"><label>Adresse</label><input type="text" id="address" placeholder="Musterstr. 1, 80333 München" oninput="gen()"></div>
+        <div class="f"><label>Bestehende Website (optional)</label><input type="url" id="oldsite" placeholder="https://alte-seite.de" oninput="gen()"></div>
+        <div class="f"><label>Slogan / Tagline</label><input type="text" id="slogan" placeholder="Ihre Experten für..." oninput="gen()"></div>
+        <div class="f"><label>Unternehmensbeschreibung (USPs, Leistungen, Alleinstellungsmerkmal)</label><textarea id="desc" placeholder="Was macht das Unternehmen? Für wen? Was macht es besonders? Welche Probleme löst es?" oninput="gen()"></textarea></div>
+        <div class="row2">
+          <div class="f"><label>Primäre Zielgruppe</label><input type="text" id="target" placeholder="z.B. KMU, Privatkunden 35-60" oninput="gen()"></div>
+          <div class="f"><label>Haupt-CTA</label><input type="text" id="cta" placeholder="Kostenlose Beratung" oninput="gen()"></div>
+        </div>
+        <div class="row2">
+          <div class="f"><label>Sprache der Website</label>
+            <select id="lang" onchange="gen()">
+              <option value="de">Deutsch</option>
+              <option value="en">Englisch</option>
+              <option value="de+en">Deutsch + Englisch</option>
+            </select>
+          </div>
+          <div class="f"><label>Ansprache</label>
+            <select id="tone" onchange="gen()">
+              <option value="formal">Formell (Sie)</option>
+              <option value="semi">Halbformell</option>
+              <option value="casual">Locker (Du)</option>
+            </select>
+          </div>
+        </div>
+        <div class="f"><label>Konkurrenten / Referenz-Websites (optional)</label><input type="text" id="refs" placeholder="z.B. competitor.de, designreferenz.com" oninput="gen()"></div>
+      </div>
+    </div>
+
+    <!-- 2. FARBEN & DESIGN -->
+    <div class="sec" id="s-design">
+      <div class="sec-head" onclick="toggleSec('s-design')">
+        <span class="sec-title">Farben & Design</span>
+        <svg class="sec-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+      <div class="sec-body">
+        <div class="div-label">Farbschema</div>
+        <div class="row3">
+          <div class="f"><label>Primär</label>
+            <div class="color-wrap"><input type="color" id="c1" value="#0f172a" oninput="syncC(this,'h1');gen()"><input type="text" id="h1" class="hex-in" value="#0f172a" oninput="syncH(this,'c1');gen()" maxlength="7"></div>
+          </div>
+          <div class="f"><label>Sekundär</label>
+            <div class="color-wrap"><input type="color" id="c2" value="#f8fafc" oninput="syncC(this,'h2');gen()"><input type="text" id="h2" class="hex-in" value="#f8fafc" oninput="syncH(this,'h2');gen()" maxlength="7"></div>
+          </div>
+          <div class="f"><label>Akzent</label>
+            <div class="color-wrap"><input type="color" id="c3" value="#2563eb" oninput="syncC(this,'h3');gen()"><input type="text" id="h3" class="hex-in" value="#2563eb" oninput="syncH(this,'h3');gen()" maxlength="7"></div>
+          </div>
+        </div>
+        <div class="f"><label>Dark Mode</label>
+          <select id="darkmode" onchange="gen()">
+            <option value="light">Nur Light Mode</option>
+            <option value="dark">Nur Dark Mode</option>
+            <option value="toggle">Beide — Toggle im Header</option>
+            <option value="system">System-Präferenz (prefers-color-scheme)</option>
+          </select>
+        </div>
+        <div class="div-label">Design-Stil</div>
+        <div class="rb-list" id="style-rb">
+          <label class="rb-item on" onclick="pickRb(this,'style-rb');gen()"><input type="radio" name="style" value="minimalist" checked><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Minimalistisch</span><span class="rb-sub">Viel Weißraum, klar</span></label>
+          <label class="rb-item" onclick="pickRb(this,'style-rb');gen()"><input type="radio" name="style" value="corporate"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Corporate</span><span class="rb-sub">Professionell, strukturiert</span></label>
+          <label class="rb-item" onclick="pickRb(this,'style-rb');gen()"><input type="radio" name="style" value="modern"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Modern</span><span class="rb-sub">Zeitgemäß, lebendig</span></label>
+          <label class="rb-item" onclick="pickRb(this,'style-rb');gen()"><input type="radio" name="style" value="traditional"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Traditionell</span><span class="rb-sub">Konservativ, vertrauensvoll</span></label>
+          <label class="rb-item" onclick="pickRb(this,'style-rb');gen()"><input type="radio" name="style" value="bold"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Bold / Impact</span><span class="rb-sub">Starke Typografie, Kontrast</span></label>
+          <label class="rb-item" onclick="pickRb(this,'style-rb');gen()"><input type="radio" name="style" value="elegant"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Elegant</span><span class="rb-sub">Serif, Premium, subtil</span></label>
+        </div>
+        <div class="div-label" style="margin-top:12px">Typografie</div>
+        <div class="rb-list" id="typo-rb">
+          <label class="rb-item on" onclick="pickRb(this,'typo-rb');gen()"><input type="radio" name="typo" value="inter+dm" checked><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Inter + DM Serif Display</span><span class="rb-sub">Modern & seriös</span></label>
+          <label class="rb-item" onclick="pickRb(this,'typo-rb');gen()"><input type="radio" name="typo" value="inter+playfair"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Inter + Playfair Display</span><span class="rb-sub">Elegant</span></label>
+          <label class="rb-item" onclick="pickRb(this,'typo-rb');gen()"><input type="radio" name="typo" value="geist"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Geist + Geist Mono</span><span class="rb-sub">Tech, Clean</span></label>
+          <label class="rb-item" onclick="pickRb(this,'typo-rb');gen()"><input type="radio" name="typo" value="plus-jakarta"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Plus Jakarta Sans</span><span class="rb-sub">Modern, freundlich</span></label>
+          <label class="rb-item" onclick="pickRb(this,'typo-rb');gen()"><input type="radio" name="typo" value="lato+merriweather"><div class="rb-dot"><div class="rb-inner"></div></div><span class="rb-label">Lato + Merriweather</span><span class="rb-sub">Traditionell, lesbar</span></label>
+        </div>
+        <div class="row2" style="margin-top:10px">
+          <div class="f"><label>Ecken-Radius</label>
+            <select id="radius" onchange="gen()">
+              <option value="sharp">Kantig (0px)</option>
+              <option value="subtle" selected>Subtil (4-6px)</option>
+              <option value="rounded">Gerundet (8-12px)</option>
+              <option value="pill">Pill (Buttons rund)</option>
+            </select>
+          </div>
+          <div class="f"><label>Animationen</label>
+            <select id="anim" onchange="gen()">
+              <option value="none">Keine</option>
+              <option value="minimal" selected>Minimal (Hover)</option>
+              <option value="scroll">Scroll-Animationen</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. SEITENSTRUKTUR -->
+    <div class="sec" id="s-pages">
+      <div class="sec-head" onclick="toggleSec('s-pages')">
+        <span class="sec-title">Seitenstruktur</span>
+        <svg class="sec-arrow open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+      <div class="sec-body open">
+        <div class="f"><label>Anzahl Hauptseiten (+ Startseite)</label>
+          <div class="stepper">
+            <button onclick="stepPages(-1)">−</button>
+            <input type="number" id="pagecnt" value="3" min="1" max="20" oninput="gen()">
+            <button onclick="stepPages(1)">+</button>
+          </div>
+        </div>
+        <div class="div-label" style="margin-top:10px">Pflichtseiten</div>
+        <div class="cb-list">
+          <label class="cb-item on" onclick="cbToggle(this)" id="chk-imprint"><input type="checkbox" checked><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Impressum</div><div class="cb-sub">DSGVO-Platzhalter /impressum</div></div></label>
+          <label class="cb-item on" onclick="cbToggle(this)" id="chk-privacy"><input type="checkbox" checked><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Datenschutz</div><div class="cb-sub">DSGVO-Platzhalter /datenschutz</div></div></label>
+        </div>
+        <div class="div-label" style="margin-top:12px">Zusätzliche Seiten</div>
+        <div class="pages-list" id="extra-pages"></div>
+        <button class="add-btn" onclick="addPage()">+ Seite hinzufügen</button>
+      </div>
+    </div>
+
+    <!-- 4. FEATURES -->
+    <div class="sec" id="s-feat">
+      <div class="sec-head" onclick="toggleSec('s-feat')">
+        <span class="sec-title">Features</span>
+        <svg class="sec-arrow open" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+      <div class="sec-body open">
+        <div class="div-label">Logo</div>
+        <div class="cb-list">
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-logo-have"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Logo vorhanden</div><div class="cb-sub">Per Dateianhang mitschicken</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-logo-gen"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Logo generieren (SVG)</div><div class="cb-sub">Claude erstellt passendes SVG-Logo</div></div></label>
+        </div>
+        <div class="div-label" style="margin-top:10px">Interaktion & Backend</div>
+        <div class="cb-list">
+          <label class="cb-item" onclick="cbToggle(this);toggleSub('sub-contact',this)" id="chk-contact"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Kontaktformular</div><div class="cb-sub">→ Cloudflare D1, Admin-Ansicht</div></div></label>
+          <div class="sub-panel" id="sub-contact">
+            <div class="f"><label style="font-size:11px">Formularfelder (kommagetrennt)</label><input type="text" id="form-fields" value="Vorname, Nachname, E-Mail, Telefon, Nachricht" oninput="gen()"></div>
+          </div>
+          <label class="cb-item" onclick="cbToggle(this);toggleSub('sub-chatbot',this)" id="chk-chatbot"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">KI-Chatbot (Mistral)</div><div class="cb-sub">10 Req/h pro IP, vollständiger System-Prompt</div></div></label>
+          <div class="sub-panel" id="sub-chatbot">
+            <div class="f"><label style="font-size:11px">Chatbot-Name</label><input type="text" id="bot-name" placeholder="z.B. Max, Lisa, Assistent" oninput="gen()"></div>
+            <div class="row2">
+              <div class="f"><label style="font-size:11px">Ton</label>
+                <select id="bot-tone" onchange="gen()">
+                  <option value="professional">Professionell</option>
+                  <option value="friendly">Freundlich</option>
+                  <option value="expert">Fachkundig</option>
+                  <option value="casual">Locker</option>
+                </select>
+              </div>
+              <div class="f"><label style="font-size:11px">Sprache</label>
+                <select id="bot-lang" onchange="gen()">
+                  <option value="de">Deutsch</option>
+                  <option value="en">Englisch</option>
+                  <option value="auto">Auto-detect</option>
+                </select>
+              </div>
+            </div>
+            <div class="f"><label style="font-size:11px">Chatbot-Wissen (FAQ, Öffnungszeiten, Leistungen, Preise...)</label><textarea id="bot-knowledge" placeholder="Öffnungszeiten: Mo-Fr 9-18 Uhr&#10;Leistungen: X, Y, Z&#10;Preise: ab 99€&#10;Ansprechpartner: Herr Müller" oninput="gen()" style="min-height:90px"></textarea></div>
+            <div class="f"><label style="font-size:11px">Verbotsthemen für den Bot</label><input type="text" id="bot-forbidden" placeholder="z.B. Konkurrenten, Preisverhandlungen" oninput="gen()"></div>
+          </div>
+          <label class="cb-item on" onclick="cbToggle(this)" id="chk-admin"><input type="checkbox" checked><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Admin-Dashboard</div><div class="cb-sub">/admin (Passwort via env.ADMIN_PASS)</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-newsletter"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Newsletter-Anmeldung</div><div class="cb-sub">E-Mail-Sammlung → D1</div></div></label>
+        </div>
+        <div class="div-label" style="margin-top:10px">Sektionen (Startseite + Unterseiten)</div>
+        <div class="cb-list">
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-services"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Leistungsübersicht</div><div class="cb-sub">Grid-Karten mit Icon + Beschreibung</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-team"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Team-Sektion</div><div class="cb-sub">Foto, Name, Position, Bio</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-testimonials"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Kundenstimmen</div><div class="cb-sub">Testimonial-Karten (kein Karussell)</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-faq"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">FAQ-Akkordeon</div><div class="cb-sub">Aufklappbar, aria-expanded</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-pricing"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Preistabelle</div><div class="cb-sub">3 Pakete, Highlight-Paket</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-stats"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Kennzahlen / Stats</div><div class="cb-sub">Große Zahlen, kurze Beschriftung</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-portfolio"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Portfolio / Referenzen</div><div class="cb-sub">Projekt-Karten, optional Filter</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-blog"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Blog / News</div><div class="cb-sub">Vorschau-Karten, /blog Seite</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-gallery"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Bildergalerie</div><div class="cb-sub">Grid + Lightbox, Lazy Loading</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-map"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Standortkarte</div><div class="cb-sub">Leaflet + OpenStreetMap (kein API-Key)</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this);toggleSub('sub-social',this)" id="chk-social"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Social Media Links</div><div class="cb-sub">SVG-Icons, Footer + optional Header</div></div></label>
+          <div class="sub-panel" id="sub-social">
+            <div class="social-row"><span>Instagram</span><input type="text" id="soc-ig" placeholder="https://instagram.com/..." oninput="gen()"></div>
+            <div class="social-row"><span>LinkedIn</span><input type="text" id="soc-li" placeholder="https://linkedin.com/..." oninput="gen()"></div>
+            <div class="social-row"><span>Facebook</span><input type="text" id="soc-fb" placeholder="https://facebook.com/..." oninput="gen()"></div>
+            <div class="social-row"><span>X / Twitter</span><input type="text" id="soc-tw" placeholder="https://x.com/..." oninput="gen()"></div>
+            <div class="social-row"><span>YouTube</span><input type="text" id="soc-yt" placeholder="https://youtube.com/..." oninput="gen()"></div>
+            <div class="social-row"><span>Xing</span><input type="text" id="soc-xi" placeholder="https://xing.com/..." oninput="gen()"></div>
+          </div>
+        </div>
+        <div class="div-label" style="margin-top:10px">Technisch</div>
+        <div class="cb-list">
+          <label class="cb-item on" onclick="cbToggle(this)" id="chk-seo"><input type="checkbox" checked><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">SEO-Grundlagen</div><div class="cb-sub">Meta, OpenGraph, sitemap.xml, robots.txt, JSON-LD</div></div></label>
+          <label class="cb-item on" onclick="cbToggle(this)" id="chk-a11y"><input type="checkbox" checked><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Accessibility (WCAG 2.1 AA)</div><div class="cb-sub">ARIA, Keyboard-Nav, Kontrastverhältnisse</div></div></label>
+          <label class="cb-item on" onclick="cbToggle(this)" id="chk-mobile"><input type="checkbox" checked><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Mobile-First Responsive</div><div class="cb-sub">Touch-optimiert, Hamburger-Menü</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-cookie"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Cookie-Consent-Banner</div><div class="cb-sub">DSGVO-konform, localStorage</div></div></label>
+          <label class="cb-item" onclick="cbToggle(this)" id="chk-perf"><input type="checkbox"><div class="cb-check"><svg class="cb-check-svg" width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="cb-text"><div class="cb-name">Performance-Optimierungen</div><div class="cb-sub">Code-Splitting, Lazy-Loading, Prefetch</div></div></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. SONSTIGES -->
+    <div class="sec" id="s-misc">
+      <div class="sec-head" onclick="toggleSec('s-misc')">
+        <span class="sec-title">Weitere Hinweise</span>
+        <svg class="sec-arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l4 4-4 4"/></svg>
+      </div>
+      <div class="sec-body">
+        <div class="f"><label>Spezielle Anforderungen / Notizen für Claude</label><textarea id="extra-notes" placeholder="Besondere Wünsche, Einschränkungen, Textvorgaben, spezifische Sektionen..." oninput="gen()" style="min-height:80px"></textarea></div>
+        <div class="f"><label>Inhaltsdateien als Anhang (beschreibe was mitgeschickt wird)</label><textarea id="attachments" placeholder="z.B.: logo.svg (Firmenlogo), fotos/ (Teamfotos), texte.docx (Fertige Texte für alle Seiten)" oninput="gen()" style="min-height:60px"></textarea></div>
+      </div>
+    </div>
+
+  </div><!-- end sidebar-scroll -->
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="main">
+  <div class="main-top">
+    <div class="main-top-left">
+      <h2>Generierter Claude-Prompt</h2>
+      <p id="stat-line">Firmenname eingeben um zu starten</p>
+    </div>
+    <div class="main-actions">
+      <button class="btn btn-ghost btn-sm" onclick="resetAll()">Zurücksetzen</button>
+      <button class="btn btn-secondary btn-sm" onclick="copyChat()">Chatbot-Prompt kopieren</button>
+      <button class="btn btn-primary btn-sm" onclick="copyMain()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/></svg>
+        Haupt-Prompt kopieren
+      </button>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('tab-prompt',this)">Haupt-Prompt</div>
+    <div class="tab" onclick="switchTab('tab-chatbot',this)">Chatbot System-Prompt</div>
+    <div class="tab" onclick="switchTab('tab-preview',this)">Übersicht</div>
+  </div>
+  <div class="output-wrap">
+
+    <!-- TAB: PROMPT -->
+    <div class="tab-content active" id="tab-prompt">
+      <div class="output-bar">
+        <div class="output-meta">
+          <span id="char-count" class="char-count">— Zeichen</span>
+          <span id="feat-count"></span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="copyMain()">Kopieren</button>
+      </div>
+      <div id="prompt-text">
+        <div class="placeholder-msg">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Firmenname eingeben um Prompt zu generieren</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: CHATBOT SYSTEM PROMPT -->
+    <div class="tab-content" id="tab-chatbot">
+      <div class="output-bar">
+        <div class="output-meta">
+          <span id="bot-char-count" class="char-count">— Zeichen</span>
+          <span class="badge badge-blue">Mistral System-Prompt</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="copyChat()">Kopieren</button>
+      </div>
+      <div id="chatbot-preview">
+        <div class="placeholder-msg">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span>KI-Chatbot aktivieren (linke Sidebar) und Firmendaten eingeben</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PREVIEW -->
+    <div class="tab-content" id="tab-preview">
+      <div id="preview-content">
+        <div class="placeholder-msg" style="margin-top:60px">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          <span>Noch keine Daten</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<div class="toast" id="toast"><div class="toast-dot"></div><span id="toast-msg">Kopiert!</span></div>
+
+<script>
+// ── STATE ──
+let pageRows = [];
+let pcnt = 0;
+
+// ── SECTION TOGGLE ──
+function toggleSec(id) {
+  const sec = document.getElementById(id);
+  const body = sec.querySelector('.sec-body');
+  const arrow = sec.querySelector('.sec-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+// ── COLOR SYNC ──
+function syncC(el, hexId) { document.getElementById(hexId).value = el.value; gen(); }
+function syncH(el, colorId) {
+  if (/^#[0-9a-fA-F]{6}$/.test(el.value)) {
+    document.getElementById(colorId).value = el.value;
+    gen();
+  }
+}
+
+// ── CHECKBOX ──
+function cbToggle(label) {
+  label.classList.toggle('on');
+  const cb = label.querySelector('input[type=checkbox]');
+  cb.checked = label.classList.contains('on');
+  gen();
+}
+
+function toggleSub(id, label) {
+  const panel = document.getElementById(id);
+  if (!panel) return;
+  if (label.classList.contains('on')) panel.classList.add('open');
+  else panel.classList.remove('open');
+}
+
+// ── RADIO ──
+function pickRb(label, groupId) {
+  document.querySelectorAll('#'+groupId+' .rb-item').forEach(el => el.classList.remove('on'));
+  label.classList.add('on');
+  label.querySelector('input[type=radio]').checked = true;
+  gen();
+}
+
+// ── STEPPER ──
+function stepPages(d) {
+  const el = document.getElementById('pagecnt');
+  el.value = Math.max(1, Math.min(20, parseInt(el.value||1) + d));
+  gen();
+}
+
+// ── EXTRA PAGES ──
+function addPage() {
+  const id = ++pcnt;
+  const row = document.createElement('div');
+  row.className = 'page-row';
+  row.id = 'pr-'+id;
+  row.innerHTML = `<input type="text" placeholder="/leistungen" oninput="gen()" class="page-path"><input type="text" placeholder="Kurzbeschreibung der Seite" oninput="gen()" class="page-info"><button class="rm-btn" onclick="rmPage(${id})" title="Entfernen">×</button>`;
+  document.getElementById('extra-pages').appendChild(row);
+  row.querySelector('.page-path').focus();
+}
+
+function rmPage(id) {
+  const el = document.getElementById('pr-'+id);
+  if (el) { el.remove(); gen(); }
+}
+
+function getExtraPages() {
+  const rows = [];
+  document.querySelectorAll('.page-row').forEach(r => {
+    const p = r.querySelector('.page-path')?.value?.trim();
+    const i = r.querySelector('.page-info')?.value?.trim();
+    if (p) rows.push({path:p, info:i||''});
+  });
+  return rows;
+}
+
+// ── HELPERS ──
+function v(id) { const el=document.getElementById(id); return el?el.value.trim():''; }
+function on(id) { const el=document.getElementById(id); return el?el.classList.contains('on'):false; }
+function rb(name) { const el=document.querySelector(`input[name="${name}"]:checked`); return el?el.value:''; }
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+}
+function showToast(msg) {
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+function copyMain() {
+  const txt = document.getElementById('prompt-text').textContent;
+  if (!txt || txt.includes('Firmenname eingeben')) { showToast('Zuerst Firmendaten eingeben'); return; }
+  navigator.clipboard.writeText(txt).then(()=>showToast('Haupt-Prompt kopiert!'));
+}
+function copyChat() {
+  const txt = document.getElementById('chatbot-preview').textContent;
+  if (!txt || txt.includes('KI-Chatbot aktivieren')) { showToast('Chatbot aktivieren und Daten eingeben'); return; }
+  navigator.clipboard.writeText(txt).then(()=>showToast('Chatbot-Prompt kopiert!'));
+}
+
+// ── LOOKUPS ──
+const STYLE_DESC = {
+  minimalist: 'Minimalistisch: maximaler Weißraum, klare typografische Hierarchie, keine unnötige Dekoration. Jede Sektion hat einen klaren Zweck. Keine Füll-Sektionen.',
+  corporate: 'Corporate: professionell, strukturiert, vertrauensaufbauend. Klare Grid-Strukturen, geordnete Informationshierarchie, seriöse Anmutung ohne Steifheit.',
+  modern: 'Modern: zeitgemäß mit bewussten Design-Entscheidungen. Leichte visuelle Spannung, gute Proportionen, frisch ohne verspielt zu sein.',
+  traditional: 'Traditionell: konservativ, vertrauenswürdig, geerdet. Bewährte Layouts, lesbare Typografie, keine Experimente — Stabilität kommunizieren.',
+  bold: 'Bold/Impact: starke Display-Typografie, hoher Kontrast, Typografie als gestalterisches Element. Klare visuelle Statements, selbstbewusstes Auftreten.',
+  elegant: 'Elegant: Serif-Headlines, zurückhaltende Akzente, großzügige Abstände, Premium-Anmutung. Qualität durch Reduktion.'
+};
+const TYPO_SPEC = {
+  'inter+dm': { body: 'Inter', headline: 'DM Serif Display', npm: '@fontsource/inter @fontsource/dm-serif-display', desc: 'Inter 400/500 (Body, 16px) + DM Serif Display 400 (Headlines) — moderner Kontrast aus humanistischer Grotesk und klassischer Serif' },
+  'inter+playfair': { body: 'Inter', headline: 'Playfair Display', npm: '@fontsource/inter @fontsource/playfair-display', desc: 'Inter 400/500 (Body) + Playfair Display 700 (Headlines) — elegant, hochwertig' },
+  'geist': { body: 'Geist', headline: 'Geist', npm: '@fontsource/geist', desc: 'Geist 400/500/600 durchgehend — tech-orientiert, clean, kohärent. Geist Mono für Code-Akzente.' },
+  'plus-jakarta': { body: 'Plus Jakarta Sans', headline: 'Plus Jakarta Sans', npm: '@fontsource/plus-jakarta-sans', desc: 'Plus Jakarta Sans 400/600/700 — modern, freundlich, keine separate Headline-Font nötig' },
+  'lato+merriweather': { body: 'Lato', headline: 'Merriweather', npm: '@fontsource/lato @fontsource/merriweather', desc: 'Lato 400/700 (Body) + Merriweather 700 (Headlines) — gut lesbar, traditionell, bewährt' }
+};
+const RADIUS_DESC = { sharp: '0px überall — kantig, tech-orientiert', subtle: '4px Inputs/Buttons, 6px Karten', rounded: '8px Inputs/Buttons, 12px Karten', pill: 'Buttons als Pill (999px), Karten 10px' };
+const ANIM_DESC = { none: 'Keine Animationen — statisch, maximale Performance', minimal: 'Hover-Transitions 150ms ease. Kein Layout-Shift durch Animationen.', scroll: 'Fade-in-up via IntersectionObserver beim Scrollen (300ms ease-out). Kein Layout-Shift.' };
+const DARKMODE_DESC = { light: 'Nur Light Mode.', dark: 'Nur Dark Mode.', toggle: 'Light + Dark Mode. Toggle-Button im Header. Standard: Light. Präferenz in localStorage speichern.', system: 'Respektiere prefers-color-scheme. Kein manueller Toggle.' };
+const TONE_MAP = { formal: 'Förmlich — Sie-Form durchgehend, professionell, sachlich', semi: 'Halbformell — Sie-Form, aber warm und einladend', casual: 'Locker — Du-Form, persönlich, modern, direkt' };
+const BOT_TONE = { professional:'professionell und sachlich, keine Floskeln, klare Antworten', friendly:'freundlich und warm, persönlich aber professionell', expert:'fachkundig und präzise, kompetent, detailorientiert', casual:'locker und direkt, sympathisch, zeitgemäß' };
+const BOT_LANG_RULE = { de:'Antworte ausschließlich auf Deutsch.', en:'Respond exclusively in English.', auto:'Erkenne die Sprache des Nutzers automatisch und antworte stets in derselben Sprache (Deutsch oder Englisch).' };
+
+// ── MAIN GENERATE ──
+function gen() {
+  const company = v('company');
+  updatePreview(company);
+  if (!company) {
+    document.getElementById('prompt-text').innerHTML = '<div class="placeholder-msg"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Firmenname eingeben um Prompt zu generieren</span></div>';
+    document.getElementById('stat-line').textContent = 'Firmenname eingeben um zu starten';
+    document.getElementById('chatbot-preview').innerHTML = '<div class="placeholder-msg"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>KI-Chatbot aktivieren (linke Sidebar) und Firmendaten eingeben</span></div>';
+    return;
+  }
+
+  const industry = v('industry');
+  const phone = v('phone');
+  const email = v('email');
+  const address = v('address');
+  const slogan = v('slogan');
+  const desc = v('desc');
+  const target = v('target');
+  const cta = v('cta') || 'Jetzt Kontakt aufnehmen';
+  const lang = v('lang');
+  const tone = v('tone');
+  const refs = v('refs');
+  const oldsite = v('oldsite');
+
+  const c1 = v('h1') || '#0f172a';
+  const c2 = v('h2') || '#f8fafc';
+  const c3 = v('h3') || '#2563eb';
+  const darkmode = v('darkmode');
+  const style = rb('style') || 'minimalist';
+  const typo = rb('typo') || 'inter+dm';
+  const radius = v('radius');
+  const anim = v('anim');
+
+  const pagecnt = parseInt(document.getElementById('pagecnt').value||3);
+  const hasImprint = on('chk-imprint');
+  const hasPrivacy = on('chk-privacy');
+  const extraPages = getExtraPages();
+
+  const hasChatbot = on('chk-chatbot');
+  const hasContact = on('chk-contact');
+  const hasAdmin = on('chk-admin');
+  const hasNewsletter = on('chk-newsletter');
+  const hasLogoHave = on('chk-logo-have');
+  const hasLogoGen = on('chk-logo-gen');
+  const hasServices = on('chk-services');
+  const hasTeam = on('chk-team');
+  const hasTestimonials = on('chk-testimonials');
+  const hasFaq = on('chk-faq');
+  const hasPricing = on('chk-pricing');
+  const hasStats = on('chk-stats');
+  const hasPortfolio = on('chk-portfolio');
+  const hasBlog = on('chk-blog');
+  const hasGallery = on('chk-gallery');
+  const hasMap = on('chk-map');
+  const hasSocial = on('chk-social');
+  const hasSEO = on('chk-seo');
+  const hasA11y = on('chk-a11y');
+  const hasMobile = on('chk-mobile');
+  const hasCookie = on('chk-cookie');
+  const hasPerf = on('chk-perf');
+
+  const botName = v('bot-name') || 'Assistent';
+  const botTone = v('bot-tone');
+  const botLang = v('bot-lang');
+  const botKnowledge = v('bot-knowledge');
+  const botForbidden = v('bot-forbidden');
+  const formFields = v('form-fields') || 'Vorname, Nachname, E-Mail, Telefon, Nachricht';
+
+  const socIG = v('soc-ig'), socLI = v('soc-li'), socFB = v('soc-fb'), socTW = v('soc-tw'), socYT = v('soc-yt'), socXI = v('soc-xi');
+
+  const extraNotes = v('extra-notes');
+  const attachments = v('attachments');
+
+  // Build pages list
+  const allPages = [{ path:'/', name:'Startseite (Homepage)' }];
+  const pageNames = ['Über uns','Leistungen','Kontakt','Referenzen','Team','Blog','Preise','FAQ','Galerie','Karriere','Presse','Partner','Zertifizierungen','Prozess','Portfolio'];
+  for (let i = 1; i < pagecnt; i++) allPages.push({ path:'/'+pageNames[i-1]?.toLowerCase().replace(/\s/g,'-') || `/seite-${i+1}`, name: pageNames[i-1] || `Seite ${i+1}` });
+  extraPages.forEach(p => allPages.push({ path:p.path, name:p.info || p.path }));
+  if (hasImprint) allPages.push({ path:'/impressum', name:'Impressum (DSGVO-Platzhalter)' });
+  if (hasPrivacy) allPages.push({ path:'/datenschutz', name:'Datenschutz (DSGVO-Platzhalter)' });
+
+  // Cloudflare functions
+  const cfFuncs = [];
+  if (hasContact || hasNewsletter) cfFuncs.push('functions/form.js');
+  if (hasAdmin) cfFuncs.push('functions/admin.js');
+  if (hasChatbot) cfFuncs.push('functions/ai.js');
+
+  // Features list
+  const features = [];
+  if (hasContact) features.push('Kontaktformular');
+  if (hasChatbot) features.push('KI-Chatbot (Mistral)');
+  if (hasAdmin) features.push('Admin-Dashboard');
+  if (hasNewsletter) features.push('Newsletter-Anmeldung');
+  if (hasServices) features.push('Leistungsübersicht');
+  if (hasTeam) features.push('Team-Sektion');
+  if (hasTestimonials) features.push('Kundenstimmen');
+  if (hasFaq) features.push('FAQ-Akkordeon');
+  if (hasPricing) features.push('Preistabelle');
+  if (hasStats) features.push('Kennzahlen/Stats');
+  if (hasPortfolio) features.push('Portfolio/Referenzen');
+  if (hasBlog) features.push('Blog/News');
+  if (hasGallery) features.push('Bildergalerie');
+  if (hasMap) features.push('Standortkarte (Leaflet)');
+  if (hasSocial) features.push('Social Media Links');
+  if (hasSEO) features.push('SEO vollständig');
+  if (hasA11y) features.push('Accessibility (WCAG 2.1)');
+  if (hasMobile) features.push('Mobile-First');
+  if (hasCookie) features.push('Cookie-Consent');
+  if (hasPerf) features.push('Performance-Optimierungen');
+
+  const typoSpec = TYPO_SPEC[typo] || TYPO_SPEC['inter+dm'];
+
+  // SOCIAL
+  const socialLinks = [];
+  if (socIG) socialLinks.push({ name:'Instagram', url:socIG });
+  if (socLI) socialLinks.push({ name:'LinkedIn', url:socLI });
+  if (socFB) socialLinks.push({ name:'Facebook', url:socFB });
+  if (socTW) socialLinks.push({ name:'X/Twitter', url:socTW });
+  if (socYT) socialLinks.push({ name:'YouTube', url:socYT });
+  if (socXI) socialLinks.push({ name:'Xing', url:socXI });
+
+  const hasFunctions = cfFuncs.length > 0;
+
+  const prompt = buildPrompt({
+    company, industry, phone, email, address, slogan, desc, target, cta, lang, tone, refs, oldsite,
+    c1, c2, c3, darkmode, style, typo, radius, anim, typoSpec,
+    allPages, features, cfFuncs, hasFunctions,
+    hasImprint, hasPrivacy, hasChatbot, hasContact, hasAdmin, hasNewsletter,
+    hasLogoHave, hasLogoGen, hasServices, hasTeam, hasTestimonials, hasFaq,
+    hasPricing, hasStats, hasPortfolio, hasBlog, hasGallery, hasMap, hasSocial,
+    hasSEO, hasA11y, hasMobile, hasCookie, hasPerf,
+    botName, botTone, botLang, botKnowledge, botForbidden, formFields, socialLinks,
+    extraNotes, attachments
+  });
+
+  document.getElementById('prompt-text').textContent = prompt;
+  document.getElementById('char-count').textContent = prompt.length.toLocaleString('de') + ' Zeichen';
+  document.getElementById('feat-count').innerHTML = `<span class="badge badge-green">${features.length} Features aktiv</span>`;
+  document.getElementById('stat-line').textContent = `${allPages.length} Seiten · ${features.length} Features · ${prompt.length.toLocaleString('de')} Zeichen`;
+
+  // Chatbot system prompt
+  const chatPrompt = hasChatbot ? buildChatbotPrompt({ company, industry, phone, email, address, slogan, desc, botName, botTone, botLang, botKnowledge, botForbidden, socialLinks }) : null;
+  if (chatPrompt) {
+    document.getElementById('chatbot-preview').textContent = chatPrompt;
+    document.getElementById('bot-char-count').textContent = chatPrompt.length.toLocaleString('de') + ' Zeichen';
+  } else {
+    document.getElementById('chatbot-preview').innerHTML = '<div class="placeholder-msg" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3);font-family:inherit;font-size:13px"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>KI-Chatbot in Features aktivieren</span></div>';
+    document.getElementById('bot-char-count').textContent = '—';
+  }
+}
+
+function buildPrompt(d) {
+  const {
+    company, industry, phone, email, address, slogan, desc, target, cta, lang, tone, refs, oldsite,
+    c1, c2, c3, darkmode, style, typo, radius, anim, typoSpec,
+    allPages, features, cfFuncs, hasFunctions,
+    hasImprint, hasPrivacy, hasChatbot, hasContact, hasAdmin, hasNewsletter,
+    hasLogoHave, hasLogoGen, hasServices, hasTeam, hasTestimonials, hasFaq,
+    hasPricing, hasStats, hasPortfolio, hasBlog, hasGallery, hasMap, hasSocial,
+    hasSEO, hasA11y, hasMobile, hasCookie, hasPerf,
+    botName, botTone, botLang, botKnowledge, botForbidden, formFields, socialLinks,
+    extraNotes, attachments
+  } = d;
+
+  const hr = '═══════════════════════════════════════════════════';
+
+  const out = [];
+  out.push(`Du bist ein erfahrener Full-Stack-Entwickler und UI-Designer. Erstelle eine vollständige, produktionsreife Unternehmenswebsite als ZIP-Datei. Liefere ALLE Dateien vollständig aus — kein Platzhalter-Code, keine abgekürzten Dateien.`);
+  out.push('');
+
+  // ── 1. PROJEKT ──
+  out.push(hr);
+  out.push('  1. PROJEKTÜBERSICHT');
+  out.push(hr);
+  out.push('');
+  out.push(`UNTERNEHMEN:  ${company}`);
+  if (industry) out.push(`BRANCHE:      ${industry}`);
+  if (slogan) out.push(`SLOGAN:       ${slogan}`);
+  if (oldsite) out.push(`ALTE WEBSITE: ${oldsite}`);
+  out.push('');
+  if (desc) { out.push('UNTERNEHMENSBESCHREIBUNG:'); out.push(desc); out.push(''); }
+
+  out.push('KONTAKTDATEN:');
+  if (phone) out.push(`  Telefon:  ${phone}`);
+  if (email) out.push(`  E-Mail:   ${email}`);
+  if (address) out.push(`  Adresse:  ${address}`);
+  out.push('');
+
+  out.push(`ZIELGRUPPE:   ${target || 'Potenzielle Kunden und Interessenten'}`);
+  out.push(`HAUPT-CTA:    ${cta}`);
+  out.push(`SPRACHE:      ${{ de:'Deutsch', en:'Englisch', 'de+en':'Deutsch + Englisch (i18n vorbereiten)' }[lang] || 'Deutsch'}`);
+  out.push(`ANSPRACHE:    ${{ formal:'Förmlich (Sie-Form durchgehend)', semi:'Halbformell (Sie, aber warm)', casual:'Locker (Du-Form)' }[tone] || 'Förmlich'}`);
+  if (refs) out.push(`REFERENZEN:   ${refs}`);
+  out.push('');
+
+  // ── 2. TECH STACK ──
+  out.push(hr);
+  out.push('  2. TECHNOLOGIE-STACK  [NICHT ABÄNDERN]');
+  out.push(hr);
+  out.push('');
+  out.push('FRONTEND:');
+  out.push('  • React 18 + Vite 5 (JavaScript, kein TypeScript nötig)');
+  out.push('  • Tailwind CSS v3 (vollständige tailwind.config.js mit Custom-Theme)');
+  out.push(`  • Lokale Fonts via npm (@fontsource): ${typoSpec.npm}`);
+  out.push('    → KEIN Google Fonts CDN, alle Fonts lokal gebündelt');
+  out.push('  • Icons: lucide-react (npm) — ausschließlich Outline-SVG-Icons');
+  out.push('    → Keine Icon-Fonts, keine Emoji, keine externen CDN-Icons');
+  out.push('  • React Router v6 für Client-Side Routing');
+  out.push('  • React Hook Form für Formulare (Validierung client-seitig)');
+  out.push('');
+  out.push('BACKEND (Cloudflare Pages + Functions):');
+  out.push('  • Deployment: Cloudflare Pages');
+  if (hasFunctions) {
+    cfFuncs.forEach(f => out.push(`  • ${f}`));
+    out.push('  • Cloudflare D1 (SQLite) für persistente Datenspeicherung');
+    out.push('  • Cloudflare KV für Rate-Limiting');
+  }
+  out.push('');
+  out.push('ABSOLUTE VERBOTE:');
+  out.push('  ✗ Keine Emoji irgendwo auf der Website');
+  out.push('  ✗ Kein KI-Slop: keine Phrasen wie "Unlock your potential", "Empowering businesses",');
+  out.push('    "Transform your journey", "Cutting-edge solutions", "Seamless experience" o.ä.');
+  out.push('  ✗ Keine sinnlosen Dekorations-Sektionen ohne Informationsgehalt');
+  out.push('  ✗ Keine externen CDN-Links (alles via npm installiert)');
+  out.push('  ✗ Kein Lorem Ipsum — alle Texte müssen zu ' + company + ' passen');
+  out.push('  ✗ Keine console.log in Production-Code');
+  out.push('  ✗ Keine abgekürzten Dateien ("... Rest des Codes ...")');
+  out.push('');
+
+  // ── 3. DESIGN ──
+  out.push(hr);
+  out.push('  3. DESIGN-SYSTEM');
+  out.push(hr);
+  out.push('');
+  out.push('FARBEN:');
+  out.push(`  Primär:    ${c1}`);
+  out.push(`  Sekundär:  ${c2}`);
+  out.push(`  Akzent:    ${c3}`);
+  out.push('');
+  out.push(`DARK MODE: ${DARKMODE_DESC[darkmode]}`);
+  out.push('');
+  out.push(`DESIGN-STIL: ${STYLE_DESC[style] || style}`);
+  out.push('');
+  out.push('TYPOGRAFIE:');
+  out.push(`  ${typoSpec.desc}`);
+  out.push(`  npm: ${typoSpec.npm}`);
+  out.push('  Import in main.jsx:');
+  if (typo === 'inter+dm') {
+    out.push(`    import '@fontsource/inter/400.css'`);
+    out.push(`    import '@fontsource/inter/500.css'`);
+    out.push(`    import '@fontsource/dm-serif-display/400.css'`);
+  } else if (typo === 'inter+playfair') {
+    out.push(`    import '@fontsource/inter/400.css'`);
+    out.push(`    import '@fontsource/inter/500.css'`);
+    out.push(`    import '@fontsource/playfair-display/700.css'`);
+  } else if (typo === 'geist') {
+    out.push(`    import '@fontsource/geist/400.css'`);
+    out.push(`    import '@fontsource/geist/500.css'`);
+    out.push(`    import '@fontsource/geist/600.css'`);
+  } else if (typo === 'plus-jakarta') {
+    out.push(`    import '@fontsource/plus-jakarta-sans/400.css'`);
+    out.push(`    import '@fontsource/plus-jakarta-sans/600.css'`);
+    out.push(`    import '@fontsource/plus-jakarta-sans/700.css'`);
+  } else if (typo === 'lato+merriweather') {
+    out.push(`    import '@fontsource/lato/400.css'`);
+    out.push(`    import '@fontsource/lato/700.css'`);
+    out.push(`    import '@fontsource/merriweather/700.css'`);
+  }
+  out.push('');
+  out.push(`BORDER-RADIUS: ${RADIUS_DESC[radius] || radius}`);
+  out.push(`ANIMATIONEN:   ${ANIM_DESC[anim] || anim}`);
+  out.push('');
+  out.push('TAILWIND CONFIG (tailwind.config.js muss enthalten):');
+  out.push(`  colors.primary:   '${c1}'`);
+  out.push(`  colors.secondary: '${c2}'`);
+  out.push(`  colors.accent:    '${c3}'`);
+  out.push(`  fontFamily.sans:  ['${typoSpec.body}', 'system-ui', 'sans-serif']`);
+  if (typoSpec.headline !== typoSpec.body) out.push(`  fontFamily.serif: ['${typoSpec.headline}', 'Georgia', 'serif']`);
+  out.push('');
+  out.push('LAYOUT-REGELN:');
+  out.push('  • Max-Breite Content: 1200px, zentriert');
+  out.push('  • Sektionen: min-height angepasst, kein erzwungenes 100vh außer Hero');
+  out.push('  • Abstände: konsistentes Spacing via Tailwind (8px Basis-Grid)');
+  out.push('  • Kein overflow-x auf body');
+  out.push('');
+
+  // ── 4. SEITENSTRUKTUR ──
+  out.push(hr);
+  out.push('  4. SEITENSTRUKTUR');
+  out.push(hr);
+  out.push('');
+  out.push('ALLE SEITEN:');
+  allPages.forEach((p,i) => out.push(`  ${(i+1).toString().padStart(2,'0')}. ${p.path.padEnd(22)} → ${p.name}`));
+  out.push('');
+  out.push('JEDE SEITE ERHÄLT:');
+  out.push('  • Konsistenten Header (sticky, Glassmorphism-Effekt subtil wenn Dark Mode, sonst solid)');
+  out.push('  • Logo links, Navigation mittig/rechts, CTA-Button ganz rechts');
+  out.push('  • Mobiles Hamburger-Menü (Slide-in von rechts)');
+  out.push('  • Footer: Logo, Kurztext, Navigationslinks, Kontakt, Rechtliches, Copyright');
+  out.push('  • Mindestens einen starken CTA-Bereich pro Seite');
+  out.push('');
+
+  // ── 5. STARTSEITE ──
+  out.push(hr);
+  out.push('  5. STARTSEITE (/)');
+  out.push(hr);
+  out.push('');
+  out.push('Pflicht-Sektionen der Startseite (in dieser Reihenfolge aufbauen):');
+  out.push('');
+  out.push('  [HERO]');
+  out.push(`    • Headline: prägnant, spezifisch für ${company} — KEINE generischen Aussagen`);
+  out.push(`    • Subheadline: konkreter Nutzen für die Zielgruppe (${target || 'potenzielle Kunden'})`);
+  out.push(`    • Primär-CTA: "${cta}" (auffälliger Button in Akzentfarbe)`);
+  out.push('    • Sekundär-CTA: z.B. "Mehr erfahren" (Ghost-Button)');
+  out.push('    • Kein Bild-Placeholder der leer wirkt — entweder Logo groß, CSS-Illustration oder reiner Typ-Hero');
+  out.push('');
+  if (hasServices) out.push('  [LEISTUNGEN] — Karten-Grid, Icon (lucide-react), Titel, 2-3 Sätze Beschreibung\n');
+  if (hasStats) out.push('  [KENNZAHLEN] — 3-4 große Zahlen + Beschriftung (als [PLATZHALTER] markiert)\n');
+  if (hasTestimonials) out.push('  [KUNDENSTIMMEN] — 3 Testimonial-Karten, kein Karussell, Zitat + Name + Position\n');
+  if (hasTeam) out.push('  [TEAM] — Team-Vorschau (2-3 Personen), Link zu vollständiger Team-Seite\n');
+  if (hasPortfolio) out.push('  [REFERENZEN] — 3-4 Projekt-Vorschau-Karten, Link zu Portfolio-Seite\n');
+  if (hasBlog) out.push('  [AKTUELLES] — 3 neueste Blog-Beiträge als Karten, Link zu /blog\n');
+  if (hasPricing) out.push('  [PREISE] — 3 Pakete, mittleres hervorgehoben, alle Preise als [PLATZHALTER]\n');
+  if (hasFaq) out.push('  [FAQ] — 6 branchenspezifische Fragen für ' + company + ', Akkordeon, aria-expanded\n');
+  if (hasNewsletter) out.push('  [NEWSLETTER] — E-Mail-Input + Checkbox Datenschutz + Subscribe-Button\n');
+  out.push('  [ABSCHLUSS-CTA] — Starke Sektion: Headline + Text + "' + cta + '" Button');
+  out.push('');
+
+  // ── 6. UNTERSEITEN ──
+  if (allPages.length > 1) {
+    out.push(hr);
+    out.push('  6. UNTERSEITEN');
+    out.push(hr);
+    out.push('');
+    const subpages = allPages.filter(p => p.path !== '/' && !p.path.includes('impressum') && !p.path.includes('datenschutz'));
+    subpages.forEach(p => {
+      out.push(`${p.path} — ${p.name}:`);
+      out.push('  • Eigener Hero-Bereich mit Breadcrumb-Navigation');
+      out.push('  • Relevanter, spezifischer Inhalt für ' + company);
+      out.push('  • Mindestens ein CTA-Element');
+      out.push('  • Vollständige Implementierung, keine Platzhalter-Seite');
+      out.push('');
+    });
+  }
+
+  // ── 7. FEATURES ──
+  out.push(hr);
+  out.push('  7. FEATURE-IMPLEMENTIERUNGEN');
+  out.push(hr);
+  out.push('');
+
+  if (hasLogoHave) {
+    out.push('LOGO (vorhanden als Dateianhang):');
+    out.push('  • Logo aus Dateianhang in src/assets/logo.svg (oder .png) speichern');
+    out.push('  • Header: max. 160px Breite, proportional skaliert');
+    out.push('  • Footer: max. 120px Breite');
+    out.push('  • Dark Mode: ggf. invertierte/helle Variante per CSS (filter: brightness(x))');
+    out.push('');
+  }
+  if (hasLogoGen) {
+    out.push('LOGO GENERIEREN:');
+    out.push(`  • Erstelle ein professionelles SVG-Logo für "${company}"`);
+    out.push(`  • Stil: passend zu "${STYLE_DESC[style]?.split(':')[0] || style}", Farben aus dem Farbschema`);
+    out.push('  • Anforderungen: schlicht, skalierbar, funktioniert auf hell und dunkel');
+    out.push('  • Speichern: src/assets/logo.svg');
+    out.push('  • Favicon: public/favicon.svg (vereinfachte Version, 32x32 Viewport)');
+    out.push('');
+  }
+  if (!hasLogoHave && !hasLogoGen) {
+    out.push('LOGO:');
+    out.push('  • Text-Logo: Firmenname in Headline-Font, Akzentfarbe für erstes Wort oder Punkt');
+    out.push('  • Erstelle public/favicon.svg mit Initialen des Unternehmens');
+    out.push('');
+  }
+
+  if (hasContact) {
+    out.push('KONTAKTFORMULAR:');
+    out.push(`  Felder: ${formFields}`);
+    out.push('  • Pflichtfelder: Vorname, E-Mail, Nachricht (Rest optional)');
+    out.push('  • Client-Validierung: react-hook-form + pattern-Prüfung E-Mail');
+    out.push('  • Honeypot-Feld (display:none) gegen Spam');
+    out.push('  • Submit: POST /api/form → functions/form.js');
+    out.push('  • Erfolg: Inline-Erfolgsmeldung (kein Alert, kein Page-Reload)');
+    out.push('  • Fehler: Inline-Fehlermeldung mit Wiederholungs-Option');
+    out.push('  • Datenschutz-Checkbox mit Link zu /datenschutz ist Pflicht');
+    out.push('');
+  }
+
+  if (hasNewsletter) {
+    out.push('NEWSLETTER-ANMELDUNG:');
+    out.push('  • Felder: E-Mail, Datenschutz-Checkbox');
+    out.push('  • Submit: POST /api/form (body: { type: "newsletter", email })');
+    out.push('  • Double-Opt-In-Hinweis im UI');
+    out.push('  • Erfolg/Fehler-Feedback inline');
+    out.push('');
+  }
+
+  if (hasMap) {
+    out.push('STANDORTKARTE:');
+    out.push('  • Pakete: leaflet + react-leaflet (npm)');
+    out.push('  • OpenStreetMap-Tiles (keine API-Keys)');
+    out.push('  • Marker: Popup mit Firmenname + Adresse');
+    out.push('  • Höhe: 420px Desktop / 260px Mobile');
+    out.push("  • CSS: import 'leaflet/dist/leaflet.css' in der Komponente");
+    out.push('  • Icon-Fix: delete L.Icon.Default.prototype._getIconUrl → setDefaultIcon manuell');
+    out.push('');
+  }
+
+  if (hasFaq) {
+    out.push('FAQ-AKKORDEON:');
+    out.push(`  • Mindestens 8 realistische, branchenspezifische Fragen für ${company}`);
+    out.push('  • Keine generischen Fragen ("Wie kann ich Kontakt aufnehmen?")');
+    out.push('  • Smooth Transition: max-height 0 → auto via CSS-Transition');
+    out.push('  • aria-expanded + aria-controls für Accessibility');
+    out.push('  • Icon: Plus/Minus (lucide-react) rotiert');
+    out.push('');
+  }
+
+  if (hasTestimonials) {
+    out.push('KUNDENSTIMMEN:');
+    out.push('  • 4 Testimonials als Platzhalter (klar als solche markiert im Code-Kommentar)');
+    out.push('  • Felder: Zitat, Name, Position/Unternehmen, optional Bewertung (1-5 Sterne als SVG)');
+    out.push('  • KEIN Karussell/Slider — Grid-Layout (2 Spalten Desktop, 1 Mobile)');
+    out.push('');
+  }
+
+  if (hasTeam) {
+    out.push('TEAM-SEKTION:');
+    out.push('  • 4 Platzhalter-Karten (Kommentar: // PLATZHALTER — mit echten Daten ersetzen)');
+    out.push('  • Felder: Foto (CSS-Platzhalter mit Initialen), Name, Position, kurze Bio (2 Sätze)');
+    out.push('  • Optional: LinkedIn-Icon-Link');
+    out.push('');
+  }
+
+  if (hasServices) {
+    out.push('LEISTUNGSÜBERSICHT:');
+    out.push(`  • 4-6 Leistungskarten, inhaltlich spezifisch für ${company} und Branche "${industry||'das Unternehmen'}"`);
+    out.push('  • Pro Karte: lucide-react Icon, Titel, Beschreibung (3-4 Sätze), optional CTA-Link');
+    out.push('  • Layout: CSS Grid, auto-fit, min 280px pro Karte');
+    out.push('');
+  }
+
+  if (hasPricing) {
+    out.push('PREISTABELLE:');
+    out.push('  • 3 Pakete (Basis, Standard, Premium — ggf. branchenspezifisch umbenennen)');
+    out.push('  • Mittleres Paket hervorgehoben (accent border, "Empfohlen"-Badge)');
+    out.push('  • Feature-Liste mit Check/X Icons (lucide-react)');
+    out.push('  • CTA-Button je Paket');
+    out.push('  • Alle Preise: [PREIS EINFÜGEN] — klar als Platzhalter');
+    out.push('');
+  }
+
+  if (hasBlog) {
+    out.push('BLOG/NEWS:');
+    out.push('  • /blog Seite mit 6 Vorschau-Karten');
+    out.push('  • Karte: Datum, Kategorie-Tag, Titel, Teaser (2 Sätze), "Weiterlesen"-Link');
+    out.push('  • /blog/:slug Detailseite (Platzhalter-Inhalt)');
+    out.push('  • Auf Startseite: 3 neueste Beiträge als Vorschau');
+    out.push('');
+  }
+
+  if (hasGallery) {
+    out.push('BILDERGALERIE:');
+    out.push('  • CSS Grid (auto-fill, min 250px)');
+    out.push('  • Platzhalter-Bilder: Graue Rechtecke mit CSS (aspect-ratio definiert)');
+    out.push('  • Lightbox: Klick → Modal mit großem Bild, Schließen-Button, Tastatur-Support (Esc)');
+    out.push('  • Lazy Loading: loading="lazy" Attribut');
+    out.push('');
+  }
+
+  if (hasStats) {
+    out.push('KENNZAHLEN/STATS:');
+    out.push(`  • 4 Zahlen, inhaltlich passend zu ${company} und Branche`);
+    out.push('  • Format: Große Zahl ([PLATZHALTER]+) + kurze Beschriftung');
+    out.push('  • Beispiel-Struktur: Kundenprojekte, Jahre Erfahrung, Mitarbeiter, Zufriedenheit');
+    if (anim === 'scroll') out.push('  • Count-Up-Animation wenn im Viewport (IntersectionObserver)');
+    out.push('');
+  }
+
+  if (hasPortfolio) {
+    out.push('PORTFOLIO/REFERENZEN:');
+    out.push('  • 6 Projekt-Karten (Platzhalter, klar markiert)');
+    out.push('  • Karte: Bild-Platzhalter (CSS), Kategorie, Titel, Kurzbeschreibung');
+    out.push('  • Hover-Effekt: Overlay mit "Mehr erfahren"');
+    out.push('  • Optional: Kategorie-Filter (JavaScript, kein Backend)');
+    out.push('');
+  }
+
+  if (hasSocial) {
+    out.push('SOCIAL MEDIA:');
+    out.push('  • SVG-Icons via lucide-react (Instagram, Linkedin, Facebook, Twitter, Youtube, etc.)');
+    if (socialLinks.length > 0) {
+      out.push('  URLs:');
+      socialLinks.forEach(s => out.push(`    ${s.name}: ${s.url}`));
+    } else {
+      out.push('  • URLs als [SOCIAL_URL] Platzhalter');
+    }
+    out.push('  • Footer: Icon-Links horizontal');
+    out.push('  • target="_blank" rel="noopener noreferrer"');
+    out.push('');
+  }
+
+  if (hasCookie) {
+    out.push('COOKIE-CONSENT:');
+    out.push('  • Banner erscheint beim ersten Besuch (localStorage check)');
+    out.push('  • Buttons: "Alle akzeptieren" / "Nur notwendige"');
+    out.push('  • Kein Drittanbieter nötig — reine localStorage-Lösung');
+    out.push('  • Link zur /datenschutz Seite');
+    out.push('  • Position: Bottom-Fixed, aber kein Overlay der ganzen Seite');
+    out.push('');
+  }
+
+  if (hasPerf) {
+    out.push('PERFORMANCE:');
+    out.push('  • Code-Splitting: React.lazy() + Suspense für alle Seiten');
+    out.push('  • Vite: manualChunks in rollupOptions für vendor-Bundle');
+    out.push('  • Bilder: Platzhalter mit korrekten aspect-ratio Attributen');
+    out.push('  • Font-Display: swap (in @fontsource Standard)');
+    out.push('  • <link rel="preload"> für kritische Fonts in index.html');
+    out.push('');
+  }
+
+  if (hasSEO) {
+    out.push('SEO:');
+    out.push(`  • Meta-Title: "[Seitenname] | ${company}" — max. 60 Zeichen`);
+    out.push('  • Meta-Description: seitenspezifisch, max. 155 Zeichen, mit Keyword');
+    out.push('  • og:title, og:description, og:type, og:url (Platzhalter für og:image)');
+    out.push('  • twitter:card: summary_large_image');
+    out.push(`  • JSON-LD (LocalBusiness oder Organization): ${company}, ${address||'Adresse Platzhalter'}`);
+    out.push('  • public/sitemap.xml: alle öffentlichen Seiten');
+    out.push('  • public/robots.txt: Allow all, Sitemap-Link');
+    out.push('  • Canonical-URL auf jeder Seite');
+    out.push('  • Heading-Hierarchie: H1 pro Seite, H2 für Sektionen, H3 für Karten');
+    out.push('');
+  }
+
+  if (hasA11y) {
+    out.push('ACCESSIBILITY:');
+    out.push('  • Skip-Link: "Zum Inhalt springen" (sr-only, sichtbar bei Fokus)');
+    out.push('  • Alle Bilder: alt-Attribute (beschreibend, nicht "Bild von...")');
+    out.push('  • Alle Icon-Buttons: aria-label');
+    out.push('  • Keyboard: Tab-Reihenfolge logisch, Focus-Ring sichtbar (outline: 2px)');
+    out.push('  • Farb-Kontrast: Texte min. 4.5:1, UI-Elemente min. 3:1 — ggf. Farben anpassen');
+    out.push('  • Navigation: role="navigation", aria-label="Hauptnavigation"');
+    out.push('  • Dialog/Modal: focus-trap, Esc-Taste schließt');
+    out.push('  • Kein autoplay für Video/Audio');
+    out.push('');
+  }
+
+  if (hasImprint || hasPrivacy) {
+    out.push('RECHTLICHE SEITEN:');
+    if (hasImprint) {
+      out.push('  /impressum:');
+      out.push('    • Vollständiger Platzhalter nach §5 TMG');
+      out.push('    • Felder: [FIRMENNAME], [RECHTSFORM], [ADRESSE], [GESCHÄFTSFÜHRER],');
+      out.push('              [REGISTERGERICHT], [HRB-NUMMER], [USTID], [TELEFON], [EMAIL]');
+      out.push('    • Hinweis-Box: "Diese Seite ist ein Platzhalter — bitte mit echten Daten ersetzen"');
+    }
+    if (hasPrivacy) {
+      out.push('  /datenschutz:');
+      out.push('    • Vollständiger DSGVO-Platzhalter');
+      out.push('    • Abschnitte: Verantwortlicher, Datenerhebung, Zweck, Rechtsgrundlage,');
+      out.push('                  Ihre Rechte (Auskunft, Löschung, Widerspruch), Cookies, Kontakt');
+      out.push('    • Alle Felder als [PLATZHALTER] — Hinweis auf anwaltliche Prüfung');
+    }
+    out.push('');
+  }
+
+  // ── 8. CLOUDFLARE FUNCTIONS ──
+  if (hasFunctions) {
+    out.push(hr);
+    out.push('  8. CLOUDFLARE FUNCTIONS');
+    out.push(hr);
+    out.push('');
+
+    if (hasContact || hasNewsletter) {
+      out.push('functions/form.js:');
+      out.push('  export async function onRequestPost(context) {');
+      out.push('    // 1. CORS-Header setzen');
+      out.push('    // 2. Rate-Limiting: max. 5 Submissions/h pro IP via KV');
+      out.push('    //    Key: "form_rl_" + ip, Value: count, TTL: 3600');
+      out.push('    // 3. JSON-Body parsen und validieren');
+      out.push('    //    Pflichtfelder: type (contact|newsletter), email');
+      out.push('    //    Honeypot-Check: falls "website"-Feld befüllt → 200 (stilles Verwerfen)');
+      out.push('    // 4. INSERT INTO submissions (type, data, ip, created_at)');
+      out.push('    //    data = JSON.stringify({ name, email, phone, message, ... })');
+      out.push('    // 5. Return { success: true } | { error: "..." }');
+      out.push('  }');
+      out.push('');
+    }
+
+    if (hasAdmin) {
+      out.push('functions/admin.js:');
+      out.push('  export async function onRequest(context) {');
+      out.push('    // Authentifizierung: Basic Auth');
+      out.push('    //   Header: Authorization: Basic base64(admin:${ADMIN_PASS})');
+      out.push('    //   context.env.ADMIN_PASS — Cloudflare Secret (wrangler secret put ADMIN_PASS)');
+      out.push('    // Bei GET /admin: HTML-Admin-Dashboard zurückgeben (kein React, reines HTML)');
+      out.push('    //   Tabelle mit allen submissions (neueste zuerst)');
+      out.push('    //   Spalten: ID, Typ, Name, E-Mail, Nachricht (gekürzt), IP, Datum');
+      out.push('    //   Filter-Buttons: Alle | Kontakt | Newsletter');
+      out.push('    //   Export-Button: GET /admin?export=csv → CSV-Download');
+      out.push('    // Dashboard: dark Theme, kein externes CSS, Inline-Styles');
+      out.push('  }');
+      out.push('');
+    }
+
+    if (hasChatbot) {
+      out.push('functions/ai.js:');
+      out.push('  export async function onRequestPost(context) {');
+      out.push('    // 1. Rate-Limiting: 10 Requests/h pro IP via KV');
+      out.push('    //    Key: "ai_rl_" + ip, Value: count (JSON), TTL: 3600');
+      out.push('    //    Bei Überschreitung: 429 + { error: "rate_limited", retry_after: seconds }');
+      out.push('    // 2. Body: { messages: [{role, content}], sessionId }');
+      out.push('    //    Maximal letzte 10 Nachrichten weiterleiten (Kontextfenster begrenzen)');
+      out.push('    // 3. Mistral API Call:');
+      out.push('    //    URL: https://api.mistral.ai/v1/chat/completions');
+      out.push('    //    Headers: Authorization: Bearer ${context.env.MISTRAL_API_KEY}');
+      out.push('    //    Body: {');
+      out.push('    //      model: "mistral-small-latest",');
+      out.push('    //      max_tokens: 350,');
+      out.push('    //      temperature: 0.3,');
+      out.push('    //      messages: [{ role: "system", content: SYSTEM_PROMPT }, ...userMessages]');
+      out.push('    //    }');
+      out.push(`    //    SYSTEM_PROMPT = der vollständige Chatbot-System-Prompt für ${company}`);
+      out.push('    //    (siehe Tab "Chatbot System-Prompt" im Generator)');
+      out.push('    // 4. Antwort streamen oder als JSON zurückgeben');
+      out.push('    //    Return: { reply: "...", usage: { tokens } }');
+      out.push('    // 5. Fehlerbehandlung: Mistral-Fehler → saubere Fehlermeldung für User');
+      out.push('  }');
+      out.push('');
+    }
+
+    out.push('schema.sql (für: wrangler d1 execute DB_NAME --file=schema.sql):');
+    out.push('  CREATE TABLE IF NOT EXISTS submissions (');
+    out.push('    id       INTEGER PRIMARY KEY AUTOINCREMENT,');
+    out.push('    type     TEXT NOT NULL,');
+    out.push('    data     TEXT NOT NULL,');
+    out.push('    ip       TEXT,');
+    out.push('    created_at DATETIME DEFAULT CURRENT_TIMESTAMP');
+    out.push('  );');
+    out.push('');
+
+    out.push('wrangler.toml muss enthalten:');
+    out.push('  name = "' + company.toLowerCase().replace(/[^a-z0-9]/g,'-') + '-website"');
+    out.push('  compatibility_date = "2024-01-01"');
+    if (hasContact || hasNewsletter || hasAdmin) {
+      out.push('  [[d1_databases]]');
+      out.push('  binding = "DB"');
+      out.push('  database_name = "submissions-db"');
+      out.push('  database_id = "HIER-D1-ID-EINTRAGEN"');
+    }
+    out.push('  [[kv_namespaces]]');
+    out.push('  binding = "KV"');
+    out.push('  id = "HIER-KV-ID-EINTRAGEN"');
+    if (hasChatbot) {
+      out.push('  # Secrets (via wrangler secret put):');
+      out.push('  # MISTRAL_API_KEY — Mistral API Key');
+    }
+    if (hasAdmin) out.push('  # ADMIN_PASS — Passwort für Admin-Dashboard');
+    out.push('');
+  }
+
+  // ── 9. PROJEKTSTRUKTUR ──
+  out.push(hr);
+  out.push('  9. PROJEKTSTRUKTUR (ZIP-INHALT)');
+  out.push(hr);
+  out.push('');
+  out.push('./                          ← Vite-Projekt-Root');
+  out.push('├── package.json');
+  out.push('├── vite.config.js');
+  out.push('├── tailwind.config.js');
+  out.push('├── postcss.config.js');
+  if (hasFunctions) out.push('├── wrangler.toml');
+  if (hasFunctions) out.push('├── schema.sql');
+  out.push('├── index.html');
+  out.push('├── .gitignore');
+  out.push('├── README.md               ← Setup-Anleitung auf Deutsch');
+  out.push('├── public/');
+  out.push('│   ├── favicon.svg');
+  if (hasSEO) { out.push('│   ├── sitemap.xml'); out.push('│   └── robots.txt'); }
+  out.push('├── src/');
+  out.push('│   ├── main.jsx            ← Font-Imports, Router, App');
+  out.push('│   ├── App.jsx             ← Route-Definitionen');
+  out.push('│   ├── index.css           ← Tailwind-Directives + CSS-Variablen');
+  out.push('│   ├── assets/');
+  out.push('│   │   └── logo.svg');
+  out.push('│   ├── components/');
+  out.push('│   │   ├── Header.jsx');
+  out.push('│   │   ├── Footer.jsx');
+  out.push('│   │   ├── Button.jsx');
+  out.push('│   │   ├── Hero.jsx');
+  if (hasContact) out.push('│   │   ├── ContactForm.jsx');
+  if (hasChatbot) out.push('│   │   ├── ChatWidget.jsx');
+  if (hasMap) out.push('│   │   ├── Map.jsx');
+  if (hasFaq) out.push('│   │   ├── FAQ.jsx');
+  if (hasTestimonials) out.push('│   │   ├── Testimonials.jsx');
+  if (hasTeam) out.push('│   │   ├── Team.jsx');
+  if (hasServices) out.push('│   │   ├── Services.jsx');
+  if (hasPricing) out.push('│   │   ├── Pricing.jsx');
+  if (hasStats) out.push('│   │   ├── Stats.jsx');
+  if (hasGallery) out.push('│   │   ├── Gallery.jsx');
+  if (hasCookie) out.push('│   │   ├── CookieBanner.jsx');
+  if (hasNewsletter) out.push('│   │   └── Newsletter.jsx');
+  out.push('│   └── pages/');
+  allPages.forEach(p => {
+    const name = p.path === '/' ? 'Home.jsx' : p.path.replace(/^\//, '').replace(/-([a-z])/g, (_, c) => c.toUpperCase()).replace(/^[a-z]/, c => c.toUpperCase()) + '.jsx';
+    out.push(`│       ├── ${name}`);
+  });
+  if (hasFunctions) {
+    out.push('└── functions/');
+    if (hasContact || hasNewsletter) out.push('    ├── form.js');
+    if (hasAdmin) out.push('    ├── admin.js');
+    if (hasChatbot) out.push('    └── ai.js');
+  }
+  out.push('');
+
+  // ── 10. PACKAGE.JSON ──
+  out.push(hr);
+  out.push('  10. PACKAGE.JSON DEPENDENCIES');
+  out.push(hr);
+  out.push('');
+  out.push('dependencies:');
+  out.push('  react, react-dom, react-router-dom, react-hook-form');
+  out.push('  lucide-react');
+  out.push(`  ${typoSpec.npm}`);
+  if (hasMap) out.push('  leaflet, react-leaflet');
+  if (hasChatbot) out.push('  (KI läuft server-seitig in functions/ai.js, kein Client-Package)');
+  out.push('');
+  out.push('devDependencies:');
+  out.push('  vite, @vitejs/plugin-react');
+  out.push('  tailwindcss, postcss, autoprefixer');
+  out.push('');
+
+  // ── 11. README ──
+  out.push(hr);
+  out.push('  11. README.md INHALT');
+  out.push(hr);
+  out.push('');
+  out.push(`Die README.md muss eine vollständige Setup-Anleitung auf Deutsch enthalten:`);
+  out.push(`  1. Voraussetzungen (Node.js 18+, npm, Wrangler CLI)`);
+  out.push(`  2. npm install`);
+  out.push(`  3. Lokale Entwicklung: npm run dev`);
+  if (hasFunctions) {
+    out.push(`  4. Cloudflare Setup:`);
+    out.push(`     a) wrangler login`);
+    if (hasContact || hasNewsletter || hasAdmin) out.push(`     b) wrangler d1 create submissions-db → ID in wrangler.toml eintragen`);
+    out.push(`     c) wrangler kv:namespace create KV → ID in wrangler.toml eintragen`);
+    out.push(`     d) wrangler d1 execute submissions-db --file=schema.sql`);
+    if (hasChatbot) out.push(`     e) wrangler secret put MISTRAL_API_KEY`);
+    if (hasAdmin) out.push(`     f) wrangler secret put ADMIN_PASS`);
+    out.push(`  5. npm run build`);
+    out.push(`  6. wrangler pages deploy dist`);
+  }
+  out.push('');
+
+  // ── 12. QUALITÄT ──
+  out.push(hr);
+  out.push('  12. QUALITÄTS-CHECKLISTE (vor Ausgabe prüfen)');
+  out.push(hr);
+  out.push('');
+  out.push('  ☐ Alle Texte spezifisch für ' + company + ' — kein Lorem Ipsum, kein KI-Slop');
+  out.push('  ☐ Alle Dateien vollständig ausgegeben (kein "..." oder "// Rest des Codes")');
+  out.push('  ☐ Keine Emoji auf der Website');
+  out.push('  ☐ Tailwind-Klassen konsistent, kein Inline-Style-Mischmasch');
+  out.push('  ☐ Alle Imports korrekt (keine fehlenden Module)');
+  out.push('  ☐ Mobile-Ansicht: kein horizontales Scrollen');
+  out.push('  ☐ Header sticky, Logo und Nav korrekt');
+  out.push('  ☐ Footer auf allen Seiten vorhanden');
+  out.push('  ☐ CTA-Element auf jeder Seite');
+  if (hasFunctions) out.push('  ☐ Cloudflare Functions: CORS, Error-Handling, Rate-Limiting implementiert');
+  if (hasChatbot) out.push('  ☐ ChatWidget: Rate-Limit-Anzeige für User, saubere Fehlerbehandlung');
+  out.push('  ☐ package.json: alle Dependencies vorhanden');
+  out.push('  ☐ README.md: vollständige Setup-Anleitung');
+  out.push('');
+
+  if (extraNotes) {
+    out.push(hr);
+    out.push('  13. ZUSÄTZLICHE ANFORDERUNGEN');
+    out.push(hr);
+    out.push('');
+    out.push(extraNotes);
+    out.push('');
+  }
+
+  if (attachments) {
+    out.push(hr);
+    out.push('  DATEIANHÄNGE');
+    out.push(hr);
+    out.push('');
+    out.push('Folgende Dateien werden als Anhang in dieser Konversation mitgeschickt:');
+    out.push(attachments);
+    out.push('Bitte diese Inhalte direkt verwenden (Logos, Texte, Fotos etc.).');
+    out.push('');
+  }
+
+  out.push(hr);
+  out.push(`Erstelle jetzt das vollständige ZIP-Projekt für "${company}".`);
+  out.push('Liefere ALLE Dateien vollständig aus. Das Projekt muss nach "npm install" und');
+  out.push('korrekter Cloudflare-Konfiguration sofort lauffähig und deploybar sein.');
+  out.push(hr);
+
+  return out.join('\n');
+}
+
+function buildChatbotPrompt(d) {
+  const { company, industry, phone, email, address, slogan, desc, botName, botTone, botLang, botKnowledge, botForbidden, socialLinks } = d;
+  const BOT_TONE_MAP = { professional:'professionell und sachlich, keine Floskeln, klare und präzise Antworten', friendly:'freundlich und warm, persönlich aber stets professionell, einladend', expert:'fachkundig und detailorientiert, kompetent, vertrauenswürdig', casual:'locker und direkt, modern, sympathisch ohne unprofessionell zu wirken' };
+  const BOT_LANG_MAP = { de:'Antworte IMMER auf Deutsch, unabhängig von der Sprache des Nutzers.', en:'Always respond in English, regardless of the user\'s language.', auto:'Erkenne die Sprache des Nutzers automatisch und antworte stets in DERSELBEN Sprache. Unterstütze Deutsch und Englisch.' };
+
+  const out = [];
+  out.push(`# System-Prompt: ${botName} — Digitaler Assistent von ${company}`);
+  out.push('');
+  out.push('## Deine Identität');
+  out.push(`Du bist ${botName}, der digitale Assistent von ${company}${industry ? ` (${industry})` : ''}. Du hilfst Besuchern der Website schnell und kompetent weiter.`);
+  out.push('');
+  out.push('## Kommunikationsstil');
+  out.push(`Ton: ${BOT_TONE_MAP[botTone] || BOT_TONE_MAP.professional}`);
+  out.push(`Sprache: ${BOT_LANG_MAP[botLang] || BOT_LANG_MAP.de}`);
+  out.push('Antwortlänge: Kompakt (2-4 Sätze). Bei komplexen Fragen bis zu 6 Sätze — nicht mehr.');
+  out.push('Format: Fließtext oder max. 3-Punkt-Liste. KEINE Markdown-Überschriften in Antworten.');
+  out.push('');
+  out.push('## Wissen über das Unternehmen');
+  out.push('');
+  if (company) out.push(`**Unternehmen:** ${company}`);
+  if (industry) out.push(`**Branche:** ${industry}`);
+  if (slogan) out.push(`**Slogan:** ${slogan}`);
+  if (desc) { out.push(''); out.push('**Beschreibung:**'); out.push(desc); }
+  out.push('');
+  out.push('**Kontakt:**');
+  if (phone) out.push(`- Telefon: ${phone}`);
+  if (email) out.push(`- E-Mail: ${email}`);
+  if (address) out.push(`- Adresse: ${address}`);
+  if (socialLinks && socialLinks.length > 0) {
+    out.push('');
+    out.push('**Social Media:**');
+    socialLinks.forEach(s => out.push(`- ${s.name}: ${s.url}`));
+  }
+  if (botKnowledge) {
+    out.push('');
+    out.push('**Weitere wichtige Informationen:**');
+    out.push(botKnowledge);
+  }
+  out.push('');
+  out.push('## Verhaltensregeln (STRIKT EINZUHALTEN)');
+  out.push('');
+  out.push('### Was du tust:');
+  out.push(`1. Du beantwortest Fragen zu ${company}, seinen Leistungen, Kontakt und Standort.`);
+  out.push('2. Bei Fragen, die du nicht beantworten kannst: Verweise auf direkten Kontakt.');
+  out.push('3. Empfiehl bei komplexen oder individuellen Anfragen immer das persönliche Gespräch.');
+  out.push('4. Bleibe stets freundlich — auch bei unhöflichen Nutzern.');
+  out.push('5. Wenn ein Nutzer ein konkretes Problem hat, frage gezielt nach (max. 1 Rückfrage).');
+  out.push('');
+  out.push('### Was du NICHT tust:');
+  out.push('1. KEINE Informationen erfinden oder spekulieren — nur belegtes Wissen nutzen.');
+  out.push('2. KEINE Preise nennen, die nicht im Wissen oben angegeben sind.');
+  out.push('3. KEINE negativen Aussagen über Konkurrenten.');
+  out.push('4. KEIN Off-Topic: Keine allgemeinen Ratschläge, Politik, persönliche Themen.');
+  out.push('5. KEINE langen Monologe — kurz und präzise bleiben.');
+  if (botForbidden) { out.push(`6. Verbotene Themen: ${botForbidden}`); }
+  out.push('');
+  out.push('## Eskalation (Weiterleitung an Mensch):');
+  out.push(`Sobald ein Nutzer:`);
+  out.push(`- Konkrete Angebote / Preisverhandlungen anfragt`);
+  out.push(`- Beschwerden einreicht`);
+  out.push(`- Technischen Support für laufende Projekte benötigt`);
+  out.push(`→ Antworte: "Für [Thema] helfe ich Ihnen am besten weiter, wenn Sie direkt Kontakt aufnehmen: ${phone || email || 'siehe Kontaktseite'}"`);
+  out.push('');
+  out.push('## Beispiel-Antworten');
+  out.push('');
+  out.push('**Nutzer:** "Was macht ihr?"');
+  out.push(`**${botName}:** "${desc ? desc.split('.')[0] + '.' : `${company} bietet professionelle Dienstleistungen im Bereich ${industry||'unserem Fachgebiet'} an.`} Womit kann ich Ihnen genauer helfen?"`);
+  out.push('');
+  out.push('**Nutzer:** "Wie kann ich Sie erreichen?"');
+  out.push(`**${botName}:** "Sie erreichen uns${phone ? ` telefonisch unter ${phone}` : ''}${phone && email ? ' oder' : ''}${email ? ` per E-Mail an ${email}` : ''}${address ? `. Unser Standort: ${address}` : ''}. Wir antworten in der Regel innerhalb eines Werktages."`);
+  out.push('');
+  out.push('**Nutzer:** "Was kostet das?"');
+  out.push(`**${botName}:** "Die Kosten hängen von Ihren konkreten Anforderungen ab. Für ein unverbindliches Angebot empfehle ich ein kurzes Gespräch — ${phone ? `am besten per Telefon (${phone})` : `am besten per E-Mail (${email||'Kontaktformular'})`}. Ich freue mich auf Ihre Anfrage."`);
+  out.push('');
+  out.push('---');
+  out.push('*Dieser System-Prompt wird in functions/ai.js als SYSTEM_PROMPT Konstante eingefügt.*');
+  out.push('*Modell: mistral-small-latest | temperature: 0.3 | max_tokens: 350*');
+
+  return out.join('\n');
+}
+
+// ── PREVIEW ──
+function updatePreview(company) {
+  const el = document.getElementById('preview-content');
+  if (!company) {
+    el.innerHTML = '<div class="placeholder-msg" style="margin-top:60px"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg><span>Noch keine Daten</span></div>';
+    return;
+  }
+
+  const c1=v('h1'),c2=v('h2'),c3=v('h3');
+  const style=rb('style'),typo=rb('typo'),typoSpec=TYPO_SPEC[typo]||TYPO_SPEC['inter+dm'];
+
+  const features = [];
+  const fmap = { 'chk-contact':'Kontaktformular','chk-chatbot':'KI-Chatbot','chk-admin':'Admin-Dashboard','chk-newsletter':'Newsletter','chk-services':'Leistungsübersicht','chk-team':'Team','chk-testimonials':'Kundenstimmen','chk-faq':'FAQ','chk-pricing':'Preistabelle','chk-stats':'Kennzahlen','chk-portfolio':'Portfolio','chk-blog':'Blog','chk-gallery':'Galerie','chk-map':'Karte','chk-social':'Social Media','chk-seo':'SEO','chk-a11y':'Accessibility','chk-mobile':'Mobile-First','chk-cookie':'Cookie-Consent','chk-perf':'Performance','chk-imprint':'Impressum','chk-privacy':'Datenschutz','chk-logo-have':'Logo (vorhanden)','chk-logo-gen':'Logo (generieren)' };
+  Object.entries(fmap).forEach(([id,name]) => { if(on(id)) features.push(name); });
+
+  const pages = ['/'];
+  const pn=parseInt(document.getElementById('pagecnt').value||3);
+  const pnames=['Über uns','Leistungen','Kontakt','Referenzen','Team','Blog'];
+  for(let i=1;i<pn;i++) pages.push('/'+(pnames[i-1]||`seite-${i+1}`).toLowerCase());
+  getExtraPages().forEach(p=>pages.push(p.path));
+  if(on('chk-imprint')) pages.push('/impressum');
+  if(on('chk-privacy')) pages.push('/datenschutz');
+
+  el.innerHTML = `
+    <div class="preview-card">
+      <h3>Unternehmen</h3>
+      ${prow('Firma', company)}
+      ${v('industry')?prow('Branche',v('industry')):''}
+      ${v('phone')?prow('Telefon',v('phone')):''}
+      ${v('email')?prow('E-Mail',v('email')):''}
+      ${v('address')?prow('Adresse',v('address')):''}
+      ${v('slogan')?prow('Slogan','<em>'+v('slogan')+'</em>'):''}
+      ${prow('CTA', v('cta')||'Jetzt Kontakt aufnehmen')}
+      ${prow('Sprache', {de:'Deutsch',en:'Englisch','de+en':'DE + EN'}[v('lang')]||'Deutsch')}
+    </div>
+    <div class="preview-card">
+      <h3>Design</h3>
+      ${prow('Farben', `<span class="color-swatch" style="background:${c1}"></span>${c1}&ensp;<span class="color-swatch" style="background:${c2}"></span>${c2}&ensp;<span class="color-swatch" style="background:${c3}"></span>${c3}`)}
+      ${prow('Stil', rb('style')||'minimalist')}
+      ${prow('Typografie', typoSpec.body + (typoSpec.headline!==typoSpec.body?' + '+typoSpec.headline:''))}
+      ${prow('Radius', v('radius'))}
+      ${prow('Dark Mode', v('darkmode'))}
+    </div>
+    <div class="preview-card">
+      <h3>Seiten (${pages.length})</h3>
+      <div style="font-family:monospace;font-size:12px;color:var(--text2);line-height:2">${pages.map(p=>`<div>${p}</div>`).join('')}</div>
+    </div>
+    <div class="preview-card">
+      <h3>Aktive Features (${features.length})</h3>
+      <div class="feature-pills">${features.map(f=>`<span class="pill">${f}</span>`).join('')||'<span style="color:var(--text3);font-size:12px">Keine Features ausgewählt</span>'}</div>
+    </div>
+    ${on('chk-chatbot')?`<div class="preview-card"><h3>KI-Chatbot</h3>${prow('Name',v('bot-name')||'Assistent')}${prow('Ton',v('bot-tone'))}${prow('Sprache',v('bot-lang'))}${prow('Modell','mistral-small-latest')}${prow('Rate-Limit','10 Req/h pro IP')}</div>`:''}
+  `;
+}
+function prow(k,v) { return `<div class="preview-row"><span class="pk">${k}</span><span class="pv">${v}</span></div>`; }
+
+// ── RESET ──
+function resetAll() {
+  if (!confirm('Alle Eingaben zurücksetzen?')) return;
+  document.querySelectorAll('input[type=text],input[type=tel],input[type=email],input[type=url],textarea').forEach(el=>el.value='');
+  ['c1','c2','c3'].forEach((id,i)=>{const vals=['#0f172a','#f8fafc','#2563eb'];document.getElementById(id).value=vals[i];});
+  ['h1','h2','h3'].forEach((id,i)=>{const vals=['#0f172a','#f8fafc','#2563eb'];document.getElementById(id).value=vals[i];});
+  document.getElementById('pagecnt').value=3;
+  document.getElementById('extra-pages').innerHTML='';
+  const defaultOn=['chk-imprint','chk-privacy','chk-admin','chk-seo','chk-a11y','chk-mobile'];
+  document.querySelectorAll('.cb-item').forEach(el=>{
+    const id=el.id;
+    const shouldOn=defaultOn.includes(id);
+    el.classList.toggle('on',shouldOn);
+    const cb=el.querySelector('input[type=checkbox]');
+    if(cb)cb.checked=shouldOn;
+  });
+  document.querySelectorAll('.sub-panel').forEach(el=>el.classList.remove('open'));
+  document.querySelectorAll('.rb-list').forEach(list=>{
+    const items=list.querySelectorAll('.rb-item');
+    items.forEach((it,i)=>{it.classList.toggle('on',i===0);it.querySelector('input').checked=i===0;});
+  });
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  gen();
+}
+
+// ── INIT ──
+gen();
+</script>
+</body>
+</html>
